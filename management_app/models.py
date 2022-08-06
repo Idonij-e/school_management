@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 def generate_pk():
@@ -37,16 +39,25 @@ class Administrator(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(CustomUser,on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name
+
 class Staff(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser,on_delete=models.CASCADE)
 
-class Session(models.Model):
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name
+
+class SchoolSession(models.Model):
     id = models.AutoField(primary_key=True)
-    session_start_year = models.DateField()
-    session_end_year=models.DateField()
+    start = models.DateField()
+    end = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.start) + " ---------- " + str(self.end)
     
     
 class ClassLevel(models.Model):
@@ -60,19 +71,44 @@ class ClassLevel(models.Model):
 
 class Student(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser,on_delete=models.CASCADE)
     class_level = models.ForeignKey(ClassLevel,on_delete=models.DO_NOTHING)
-    session_year = models.ForeignKey(Session,on_delete=models.CASCADE)
+    school_session = models.ForeignKey(SchoolSession,on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name
 
 
 class Subject(models.Model):
     id = models.AutoField(primary_key=True)
     subject_name = models.CharField(max_length=255)
     class_level = models.ForeignKey(ClassLevel,on_delete=models.CASCADE,default=1)
-    staff = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    staff = models.ForeignKey(Staff,on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.subject_name
+        return self.subject_name + " " + self.class_level.class_name
+
+@receiver(post_save,sender=CustomUser)
+def add_user_to_group(sender,instance,created,**kwargs):
+    if created:
+        if instance.user_type==1:
+            Administrator.objects.create(user=instance)
+        if instance.user_type==2:
+            Staff.objects.create(user=instance)
+        if instance.user_type==3:
+            Student.objects.create(
+                user=instance,
+                class_level=ClassLevel.objects.get(id=1),
+                school_session=SchoolSession.objects.get(id=1)
+            )
+            
+@receiver(post_save,sender=CustomUser)
+def save_user_to_group(sender,instance,**kwargs):
+    if instance.user_type==1:
+        instance.administrator.save()
+    if instance.user_type==2:
+        instance.staff.save()
+    if instance.user_type==3:
+        instance.student.save()
