@@ -27,7 +27,11 @@ class User(AbstractUser):
     gender = models.PositiveIntegerField(default=1, choices=gender_data)
     phone_number = models.IntegerField(blank=True, null=True)
 
-    objects = UserManager()
+    # objects = UserManager()
+
+    # def save(self, *args, **kwargs):
+    #     self.school_id = generate_school_id()
+    #     super().save(*args, **kwargs)
 
 
 
@@ -56,8 +60,8 @@ class Session(models.Model):
     session_start_year = models.DateField()
     session_end_year = models.DateField()
 
-    def __str__(self) -> str:
-        str(self.session_start_year) + " to " + str(self.session_end_year)
+    def __str__(self):
+        return str(self.session_start_year) + " ----to---- " + str(self.session_end_year)
 
 
 
@@ -102,7 +106,7 @@ class Student(models.Model):
 
 #Creating Django Signals
 
-# It's like trigger in database. It will run only when Data is Added in CustomUser model
+# It's like trigger in database. It will run only when Data is Added in User model
 
 @receiver(post_save, sender=User)
 # Now Creating a Function which will automatically insert data in Administrator, Staff or Student
@@ -115,7 +119,7 @@ def create_user_profile(sender, instance, created, **kwargs):
         if instance.user_type == 2:
             Staff.objects.create(user=instance)
         if instance.user_type == 3:
-            Student.objects.create(user=instance, course_id=ClassLevel.objects.get(id=1), session_year_id=Session.objects.get(id=1))
+            Student.objects.create(user=instance, class_level=ClassLevel.objects.get(id=1), session=Session.objects.get(id=1))
     
 
 @receiver(post_save, sender=User)

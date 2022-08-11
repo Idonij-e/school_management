@@ -28,7 +28,7 @@ def home(request):
     subject_list = []
     student_count_list_in_subject = []
     for subject in subject_all:
-        class_level = ClassLevel.objects.get(id=subject.class_level_id.id)
+        class_level = ClassLevel.objects.get(id=subject.class_level.id)
         student_count = Student.objects.filter(class_level_id=class_level.id).count()
         subject_list.append(subject.subject_name)
         student_count_list_in_subject.append(student_count)
@@ -38,14 +38,14 @@ def home(request):
 
     staffs = Staff.objects.all()
     for staff in staffs:
-        staff_name_list.append(staff.admin.first_name)
+        staff_name_list.append(staff.user.first_name)
 
     # For Students
     student_name_list=[]
 
     students = Student.objects.all()
     for student in students:
-        student_name_list.append(student.admin.first_name)
+        student_name_list.append(student.user.first_name)
 
 
     context={
