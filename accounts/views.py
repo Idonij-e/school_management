@@ -20,7 +20,7 @@ def do_login(request):
         login(request, user, backend='.school_id_backend.SchoolIdBackend')
         user_type = user.user_type
         if user_type == 1:
-            return redirect('admin_home')
+            return redirect('admin_home', user_school_id=user.school_id)
             
     #     elif user_type == 2:
     #         # return HttpResponse("Staff Login")
