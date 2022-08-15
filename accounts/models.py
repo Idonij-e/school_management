@@ -57,11 +57,11 @@ class Staff(models.Model):
 
 class Session(models.Model):
     id = models.AutoField(primary_key=True)
-    session_start_year = models.DateField()
-    session_end_year = models.DateField()
+    session_start = models.DateField()
+    session_end = models.DateField()
 
     def __str__(self):
-        return str(self.session_start_year) + " ----to---- " + str(self.session_end_year)
+        return str(self.session_start) + " ----to---- " + str(self.session_end)
 
 
 
@@ -80,7 +80,7 @@ class Subject(models.Model):
     id =models.AutoField(primary_key=True)
     subject_name = models.CharField(max_length=255)
     class_level = models.ForeignKey(ClassLevel, on_delete=models.CASCADE, default=1)
-    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    staff = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

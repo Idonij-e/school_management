@@ -90,8 +90,8 @@
             </li>
 
             <li class="nav-item">
-            {% url 'add_course' user.school_id as add_course %}
-              <a href="{{ add_course }}" class="nav-link {% if request.path == add_course %} active {% endif %}">
+            {% url 'add_class' user.school_id as add_class %}
+              <a href="{{ add_class }}" class="nav-link {% if request.path == add_class %} active {% endif %}">
                 <i class="nav-icon fas fa-th"></i>
                 <p>
                   Add Class

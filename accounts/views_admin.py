@@ -177,8 +177,108 @@ def edit_student(request):
 
 
 def manage_class(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    class_levels = ClassLevel.objects.all()
+    context = {
+        "user": user,
+        "class_levels": class_levels
+    }
+    return render(request, 'admin_templates/manage_class_template.html', context)
+
+def add_class(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    context = {
+        "user": user
+    }
+    return render(request, "admin_templates/add_class_template.html", context)
+
+def add_class_save(request):
     pass
 
 
-def manage_subject(request):
+def edit_class(request):
+    pass
+
+def delete_class(request):
+    pass
+
+
+def manage_subject(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    subjects = Subject.objects.all()
+    context = {
+        "user": user,
+        "subjects": subjects
+    }
+    return render(request, 'admin_templates/manage_subject_template.html', context)
+
+def add_subject(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    class_levels = ClassLevel.objects.all()
+    staff_list = User.objects.filter(user_type='2')
+    context = {
+        "user": user,
+        "class_levels": class_levels,
+        "staff_list": staff_list
+    }
+    return render(request, 'admin_templates/add_subject_template.html', context)
+
+def add_subject_save(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    if request.method != "POST":
+        messages.error(request, "Method Not Allowed!")
+        return redirect('add_subject', user_school_id=user.school_id)
+    else:
+        subject_name = request.POST.get('subject')
+        class_level_id = request.POST.get('class')
+        class_level = ClassLevel.objects.get(id=class_level_id)
+        
+        staff_id = request.POST.get('staff')
+        staff = User.objects.get(id=staff_id)
+
+        try:
+            subject = Subject(subject_name=subject_name, class_level=class_level, staff=staff)
+            subject.save()
+            messages.success(request, "Subject Added Successfully!")
+            return redirect('add_subject', user_school_id=user.school_id)
+        except:
+            messages.error(request, "Failed to Add Subject!")
+            return redirect('add_subject', user_school_id=user.school_id)
+
+def edit_subject(request):
+    pass
+
+def delete_subject(request):
+    pass
+
+def manage_session(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    sessions = Session.objects.all()
+    context = {
+        "user": user,
+        "sessions": sessions
+    }
+    return render(request, "admin_templates/manage_session_template.html", context)
+
+def add_session(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    context = {
+        "user": user
+    }
+    return render(request, "admin_templates/add_session_template.html", context)
+
+def add_session_save(request):
+    pass
+
+def edit_session(request, user_school_id):
+    pass
+
+def delete_session(request, session_id):
     pass

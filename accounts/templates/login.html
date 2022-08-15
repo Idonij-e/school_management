@@ -6,12 +6,12 @@
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="{% url 'login_page' %}"><b>Student </b>Management System</a>
+    <a href="{% url 'login_page' %}"><b>Spring Leaf School</b></a>
   </div>
   <!-- /.login-logo -->
   <div class="card">
     <div class="card-body login-card-body">
-      <p class="login-box-msg">Sign in to Student Management System</p>
+      <p class="login-box-msg">Sign in to your account</p>
 
       <form action="{% url 'do_login' %}" method="POST">
       {% csrf_token %}
