@@ -10,7 +10,7 @@ from .managers import UserManager
 
 # Overriding the Default Django Auth User and adding One More Field (user_type)
 class User(AbstractUser):
-    school_id = models.CharField(default=generate_school_id, max_length=100, editable=False)
+    school_id = models.CharField(default=generate_school_id, max_length=100, editable=False, unique=True)
     user_type_data = (
         (1, "Administrator"), 
         (2, "Staff"), 
@@ -26,12 +26,6 @@ class User(AbstractUser):
     )
     gender = models.PositiveIntegerField(default=1, choices=gender_data)
     phone_number = models.CharField(blank=True, null=True, max_length=14)
-
-    # objects = UserManager()
-
-    # def save(self, *args, **kwargs):
-    #     self.school_id = generate_school_id()
-    #     super().save(*args, **kwargs)
 
 
 
@@ -99,7 +93,7 @@ class Student(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.school_id + " " +  self.user.last_name +  self.user.first_name
+        return self.user.school_id + " " +  self.user.last_name + " " +  self.user.first_name
 
 
 
