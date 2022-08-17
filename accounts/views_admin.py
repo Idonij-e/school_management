@@ -1,3 +1,4 @@
+import email
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -70,11 +71,53 @@ def home(request, **kwargs):
     return render(request, 'admin_templates/home.html', context)
 
 
-def profile(request, user_school_id):
-    pass
+# Administrator profile
 
+def profile(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    context={
+        "user": user
+    }
+    return render(request, 'admin_templates/admin_profile.html', context)
+
+def edit_admin_profile(request, user_school_id):
+
+    if request.method != "POST":
+        messages.error(request, "Invalid Method!")
+        return redirect("/" + user_school_id + 'profile')
+
+    else:
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        other_names = request.POST.get('other_names')
+        password = request.POST.get('password')
+        email = request.POST.get('email')
+        phone_number = request.POST.get('phone_number')
+        school_id = request.POST.get('school_id')
+
+        try:
+            user = User.objects.get(school_id=school_id)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.other_names = other_names
+            user.email = email
+            user.phone_number = phone_number
+
+            if password != None and password != "":
+                user.set_password(password)
+                
+            user.save()
+            messages.success(request, "Profile Updated Successfully")
+            
+        except:
+            messages.error(request, "Failed to Update Profile")
+
+        finally:
+            return redirect("/" + user_school_id + 'profile')    
 
 # STAFF
+
 def manage_staff(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     staff_list = Staff.objects.all()

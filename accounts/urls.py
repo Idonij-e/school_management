@@ -6,10 +6,10 @@ from . import views_admin
 urlpatterns = [
     path('', views.login_page, name="login_page"),
     path('doLogin', views.do_login, name="do_login"),
-    # path('admin/', views_admin.home, name="admin_home"),
     path('<user_school_id>', views_admin.home, name="admin_home"),
     path('<user_school_id>/profile', views_admin.profile, name="admin_profile"),
     path('logout_user/', views.logout_user, name="logout_user"),
+
 
     path('<user_school_id>/add_staff', views_admin.add_staff, name="add_staff"),
     path('<user_school_id>/add_student', views_admin.add_student, name="add_student"),
@@ -23,6 +23,7 @@ urlpatterns = [
     path('<user_school_id>/add_subject_save', views_admin.add_subject_save, name="add_subject_save"),
     path('<user_school_id>/add_session_save', views_admin.add_session_save, name="add_session_save"),
 
+    path('<user_school_id>/profile', views_admin.edit_admin_profile, name="edit_admin_profile"),
     path('<user_school_id>/edit_staff/<staff_school_id>', views_admin.edit_staff, name="edit_staff"),
     path('<user_school_id>/edit_student/<student_school_id>', views_admin.edit_student, name="edit_student"),
     path('<user_school_id>/edit_class/<class_level_id>', views_admin.edit_class, name="edit_class"),
