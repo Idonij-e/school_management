@@ -25,7 +25,7 @@ class User(AbstractUser):
         (2, "Male")
     )
     gender = models.PositiveIntegerField(default=1, choices=gender_data)
-    phone_number = models.IntegerField(blank=True, null=True)
+    phone_number = models.CharField(blank=True, null=True, max_length=14)
 
     # objects = UserManager()
 

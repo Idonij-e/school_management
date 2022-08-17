@@ -9,7 +9,7 @@ from .models import User, Administrator, Staff, Student, Session, ClassLevel, Su
 class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {"fields": ( 'school_id', 'email', 'username', 'password')}),
-        ("Personal Info", {'fields': ('last_name', 'first_name', 'other_names')}),
+        ("Personal Info", {'fields': ('last_name', 'first_name', 'other_names', 'phone_number')}),
         ("Permissions", {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ("Important Dates", {'fields': ('last_login', 'date_joined')})
     )

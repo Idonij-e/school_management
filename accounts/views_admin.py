@@ -4,6 +4,7 @@ from django.contrib import messages
 
 from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject
 from accounts.forms import AddStudentForm, EditStudentForm
+from accounts.utils import generate_school_id
 
 def home(request, **kwargs):
 
@@ -72,6 +73,8 @@ def home(request, **kwargs):
 def profile(request, user_school_id):
     pass
 
+
+# STAFF
 def manage_staff(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     staff_list = Staff.objects.all()
@@ -90,14 +93,92 @@ def add_staff(request, user_school_id):
     return render(request, "admin_templates/add_staff_template.html", context)
 
 def add_staff_save(request, user_school_id):
-    pass
+    if request.method != "POST":
+        messages.error(request, "Invalid Method ")
+        return redirect("/" + user_school_id + '/add_staff')
+    else:
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        other_names = request.POST.get('other_names')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        phone_number = request.POST.get('phone_number')
+        username = generate_school_id()
+
+        try:
+            user = User.objects.create_user(
+                username=username, 
+                password=password, 
+                email=email, 
+                first_name=first_name, 
+                last_name=last_name, 
+                other_names=other_names,
+                phone_number=phone_number,
+                user_type=2)
 
 
-def edit_staff(request):
-    pass
+            messages.success(request, "Staff Added Successfully!")
 
-def delete_staff(request):
-    pass
+        except:
+            messages.error(request, "Failed to Add Staff!")
+
+        finally:
+            return redirect("/" + user_school_id + '/add_staff')
+
+def edit_staff(request, user_school_id, staff_school_id):
+    user = User.objects.get(school_id=user_school_id)
+
+    staff = User.objects.get(school_id=staff_school_id).staff
+    context = {
+        "user": user,
+        "staff": staff
+    }
+    return render(request, "admin_templates/edit_staff_template.html", context)
+
+def edit_staff_save(request, user_school_id):
+    if request.method != "POST":
+        return HttpResponse("<h2>Method Not Allowed</h2>")
+    else:
+        staff_school_id = request.POST.get('staff_school_id')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        other_names = request.POST.get('other_names')
+        phone_number = request.POST.get('phone_number')
+
+        try:
+            # INSERTING into User Model
+            user = User.objects.get(school_id=staff_school_id)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.other_names = other_names
+            user.phone_number = phone_number
+            user.save()
+
+            messages.success(request, "Staff Updated Successfully.")
+
+        except:
+            messages.error(request, "Failed to Update Staff.")
+
+        finally:
+            return redirect("/" + user_school_id + '/edit_staff/' + staff_school_id)
+
+def delete_staff(request, user_school_id, staff_school_id):
+    staff = User.objects.get(school_id=staff_school_id)
+    
+    try: 
+        staff.delete()
+        messages.success(request, "Staff Deleted Successfully.")
+
+    except:
+        messages.error(request, "Failed to Delete Staff.")
+        
+    finally:
+        return redirect("/" + user_school_id + "/manage_staff")
+
+
+# STUDENTS
 
 def manage_students(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
@@ -121,7 +202,7 @@ def add_student(request, user_school_id):
 def add_student_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method")
-        return redirect('add_student')
+        return redirect("/" + user_school_id + '/add_student')
     else:
         form = AddStudentForm(request.POST, request.FILES)
 
@@ -162,12 +243,15 @@ def add_student_save(request, user_school_id):
                 user.student.profile_pic = profile_pic_url
                 user.save()
                 messages.success(request, "Student Added Successfully!")
-                return redirect('add_student')
+
             except:
                 messages.error(request, "Failed to Add Student!")
-                return redirect('add_student')
+            
+            finally: 
+                return redirect("/" + user_school_id + '/add_student')
+
         else:
-            return redirect('add_student')
+            return redirect("/" + user_school_id + '/add_student')
 
 def delete_student(request):
     pass
@@ -232,7 +316,7 @@ def add_subject_save(request, user_school_id):
 
     if request.method != "POST":
         messages.error(request, "Method Not Allowed!")
-        return redirect('add_subject', user_school_id=user.school_id)
+        return redirect("/" + user_school_id + '/add_subject')
     else:
         subject_name = request.POST.get('subject')
         class_level_id = request.POST.get('class')
@@ -245,10 +329,12 @@ def add_subject_save(request, user_school_id):
             subject = Subject(subject_name=subject_name, class_level=class_level, staff=staff)
             subject.save()
             messages.success(request, "Subject Added Successfully!")
-            return redirect('add_subject', user_school_id=user.school_id)
+
         except:
             messages.error(request, "Failed to Add Subject!")
-            return redirect('add_subject', user_school_id=user.school_id)
+
+        finally:
+            return redirect("/" + user_school_id + '/add_subject')
 
 def edit_subject(request):
     pass

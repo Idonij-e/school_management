@@ -1,7 +1,7 @@
 {% extends 'admin_templates/base_template.html' %}
 
 {% block page_title %}
-    Add Subject
+    Edit Staff | {{ staff.user.school_id }} | {{ staff.user.first_name }} {{ staff.user.last_name }}
 {% endblock page_title %}
 
 {% block main_content %}
@@ -16,11 +16,11 @@
                     <!-- general form elements -->
                     <div class="card card-primary">
                     <div class="card-header">
-                        <h3 class="card-title">Add Subject</h3>
+                        <h3 class="card-title">Edit Staff</h3>
                     </div>
                     <!-- /.card-header -->
                     <!-- form start -->
-                    <form role="form" method="POST" action="{% url 'add_subject_save' user.school_id %}">
+                    <form role="form" method="POST" action="{% url 'edit_staff_save' user.school_id %}">
                         {% csrf_token %}
 
                         
@@ -51,34 +51,47 @@
                             
 
                         <div class="card-body">
+
                             <div class="form-group">
-                                <label>Subject Name </label>
-                                <input type="text" class="form-control" name="subject" placeholder="Enter Subject">
+                                <label>First Name</label>
+                                <input type="text" class="form-control" name="first_name" value="{{ staff.user.first_name }}">
                             </div>
 
                             <div class="form-group">
-                                <label>Class </label>
-                                <select class="form-control" name="class">
-                                    {% for class_level in class_levels %}
-                                        <option value="{{ class_level.id }}">{{ class_level.class_level_name }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label>Last Name</label>
+                                <input type="text" class="form-control" name="last_name" value="{{ staff.user.last_name }}">
                             </div>
 
                             <div class="form-group">
-                                <label>Staff </label>
-                                <select class="form-control" name="staff">
-                                    {% for staff in staff_list %}
-                                        <option value="{{ staff.id }}">{{ staff.first_name }} {{ staff.last_name }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label>Other Names</label>
+                                {% if staff.user.other_names %}
+                                    <input type="text" class="form-control" name="other_names" value="{{ staff.user.other_names }}">
+                                {% else %}
+                                    <input type="text" class="form-control" name="other_names" value="">             
+                                {% endif %}   
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email address</label>
+                                <input type="email" class="form-control" name="email" value="{{ staff.user.email }}">
+                                <input type="hidden" name="staff_school_id" value="{{staff.user.school_id}} read-only">
+                            </div>
+
+                            {% comment %} <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" class="form-control" name="password" value="{{ staff.user.password }}">
+                            </div> {% endcomment %}
+
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="number" class="form-control" name="phone_number" value="{{ staff.user.phone_number }}">
                             </div>
 
                         </div>
                         <!-- /.card-body -->
 
                         <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">Add Subject</button>
+                        <button type="submit" class="btn btn-primary">Update Staff</button>
                         </div>
                     </form>
                     </div>
