@@ -19,6 +19,6 @@ after packages have installed run command
 
 school id for super user you create will be "B0000000" by default
 
-create super user, http://localhost:{YOUR PORT}/django_admin and add an admin there
+create super user, http://localhost:{YOUR_PORT}/django_admin and add an admin there
 
-use http://localhost:8000/ to log in to app
+use http://localhost:{YOUR_PORT}/ to log in to app
