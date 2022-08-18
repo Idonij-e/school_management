@@ -11,7 +11,7 @@
 <section class="content">
         <div class="container-fluid">
 
-            <a class="btn btn-primary" href="{% url 'add_staff' user.school_id %}" role="button">+ Add Staff</a> <br/>&nbsp;
+            <a class="btn btn-primary" href="{% url 'add_staff' user_school_id %}" role="button">+ Add Staff</a> <br/>&nbsp;
 
             {% if messages %}
                                 <div class="form-group">
@@ -84,8 +84,8 @@
                                 <!-- <td>{{ staff.user.last_login }}</td> -->
                                 <td>{{ staff.user.date_joined }}</td>
                                 <td>
-                                    <a href="{% url 'edit_staff' user.school_id staff.user.school_id %}" class="btn btn-success">Edit</a> 
-                                    <a href="{% url 'delete_staff' user.school_id staff.user.school_id %}" class="btn btn-danger">Delete</a>
+                                    <a href="{% url 'edit_staff' user_school_id staff.user.school_id %}" class="btn btn-success">Edit</a> 
+                                    <a href="{% url 'delete_staff' user_school_id staff.user.school_id %}" class="btn btn-danger">Delete</a>
                                 </td>
                                 </tr>
                                 {% endfor %}

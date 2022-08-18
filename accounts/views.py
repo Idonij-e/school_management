@@ -16,22 +16,24 @@ def do_login(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     user = SchoolIdBackend.authenticate(request, school_id=request.POST.get('school_id'), password=request.POST.get('password'))
+
     if user != None:
         login(request, user, backend='.school_id_backend.SchoolIdBackend')
         user_type = user.user_type
+
         if user_type == 1:
-            return redirect(user.school_id + '/admin_home')
+            return redirect("/" + user.school_id + "/admin_home")
             
-    #     elif user_type == 2:
-    #         # return HttpResponse("Staff Login")
-    #         return redirect('staff_home')
+        elif user_type == 2:
+            return redirect("/" + user.school_id + '/staff_home')
             
-    #     elif user_type == 3:
-    #         # return HttpResponse("Student Login")
-    #         return redirect('student_home')
-    #     else:
-    #         messages.error(request, "Invalid Login!")
-    #         return redirect('login')
+        elif user_type == 3:
+            return redirect("/" + user.school_id + '/student_home')
+
+        else:
+            messages.error(request, "Invalid Login!")
+            return redirect('login')
+
     else:
         messages.error(request, "Invalid Login Credentials!")
         return redirect('login_page')
@@ -47,6 +49,10 @@ def get_user_details(request):
 
 
 def logout_user(request):
+    del request.session['user_school_id']
+    del request.session['user_first_name']
+    del request.session['user_last_name']
+    del request.session['user_other_names']
     logout(request)
     return HttpResponseRedirect('/')
 

@@ -1,4 +1,3 @@
-import email
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -8,8 +7,13 @@ from accounts.forms import AddStudentForm, EditStudentForm
 from accounts.utils import generate_school_id
 
 def home(request, **kwargs):
-
     user = User.objects.get(school_id=kwargs.get('user_school_id'))
+
+    # data used in every view
+    request.session['user_school_id'] = user.school_id
+    request.session['user_first_name'] = user.first_name
+    request.session['user_last_name'] = user.last_name
+    request.session['user_other_names'] = user.other_names
 
     all_student_count = Student.objects.all().count()
     subject_count = Subject.objects.all().count()
@@ -54,7 +58,10 @@ def home(request, **kwargs):
 
 
     context={
-        'user': user,
+        'user_school_id': request.session.get('user_school_id'),
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
         "all_student_count": all_student_count,
         "subject_count": subject_count,
         "class_level_count": class_level_count,
@@ -77,7 +84,11 @@ def profile(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
 
     context={
-        "user": user
+        "user": user,
+        'user_school_id': request.session.get('user_school_id'),
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
     }
     return render(request, 'admin_templates/admin_profile.html', context)
 
@@ -95,6 +106,7 @@ def edit_admin_profile(request, user_school_id):
         email = request.POST.get('email')
         phone_number = request.POST.get('phone_number')
         school_id = request.POST.get('school_id')
+        gender = request.POST.get('gender')
 
         try:
             user = User.objects.get(school_id=school_id)
@@ -103,6 +115,7 @@ def edit_admin_profile(request, user_school_id):
             user.other_names = other_names
             user.email = email
             user.phone_number = phone_number
+            user.gender = gender
 
             if password != None and password != "":
                 user.set_password(password)
@@ -119,19 +132,23 @@ def edit_admin_profile(request, user_school_id):
 # STAFF
 
 def manage_staff(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
     staff_list = Staff.objects.all()
     context = { 
-        "user": user,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
         "staff_list": staff_list
         }
 
     return render(request, 'admin_templates/manage_staff_template.html', context)
 
 def add_staff(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
     context = {
-        "user": user
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id
     }
     return render(request, "admin_templates/add_staff_template.html", context)
 
@@ -139,6 +156,7 @@ def add_staff_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method ")
         return redirect("/" + user_school_id + '/add_staff')
+
     else:
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -146,6 +164,7 @@ def add_staff_save(request, user_school_id):
         email = request.POST.get('email')
         password = request.POST.get('password')
         phone_number = request.POST.get('phone_number')
+        gender= request.POST.get('gender')
         username = generate_school_id()
 
         try:
@@ -157,23 +176,27 @@ def add_staff_save(request, user_school_id):
                 last_name=last_name, 
                 other_names=other_names,
                 phone_number=phone_number,
+                gender=gender,
                 user_type=2)
 
 
             messages.success(request, "Staff Added Successfully!")
 
-        except:
+        except Exception as e:
+            print(e)
             messages.error(request, "Failed to Add Staff!")
 
         finally:
             return redirect("/" + user_school_id + '/add_staff')
 
 def edit_staff(request, user_school_id, staff_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     staff = User.objects.get(school_id=staff_school_id).staff
     context = {
-        "user": user,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
         "staff": staff
     }
     return render(request, "admin_templates/edit_staff_template.html", context)
@@ -181,6 +204,7 @@ def edit_staff(request, user_school_id, staff_school_id):
 def edit_staff_save(request, user_school_id):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
+
     else:
         staff_school_id = request.POST.get('staff_school_id')
         email = request.POST.get('email')
@@ -188,6 +212,7 @@ def edit_staff_save(request, user_school_id):
         last_name = request.POST.get('last_name')
         other_names = request.POST.get('other_names')
         phone_number = request.POST.get('phone_number')
+        gender = request.POST.get('gender')
 
         try:
             # INSERTING into User Model
@@ -197,6 +222,7 @@ def edit_staff_save(request, user_school_id):
             user.email = email
             user.other_names = other_names
             user.phone_number = phone_number
+            user.gender = gender
             user.save()
 
             messages.success(request, "Staff Updated Successfully.")
@@ -224,11 +250,13 @@ def delete_staff(request, user_school_id, staff_school_id):
 # STUDENTS
 
 def manage_students(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     students = Student.objects.all()
     context = {
-        "user": user,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
         "students": students
     }
     return render(request, 'admin_templates/manage_students_template.html', context)
@@ -236,15 +264,20 @@ def manage_students(request, user_school_id):
 def add_student(request, user_school_id):
     form = AddStudentForm()
     context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
         "user_school_id": user_school_id,
         "form": form
     }
     return render(request, 'admin_templates/add_student_template.html', context)
 
 def add_student_save(request, user_school_id):
+    
     if request.method != "POST":
         messages.error(request, "Invalid Method")
         return redirect("/" + user_school_id + '/add_student')
+
     else:
         form = AddStudentForm(request.POST, request.FILES)
 
@@ -326,6 +359,9 @@ def edit_student(request, user_school_id, student_school_id):
     form.fields['phone_number'].initial = student_user.phone_number
 
     context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
         "user_school_id": user_school_id,
         "student": student_user,
         "form": form
@@ -335,6 +371,7 @@ def edit_student(request, user_school_id, student_school_id):
 def edit_student_save(request, user_school_id):
     if request.method != "POST":
         return HttpResponse("Invalid Method!")
+
     else:
         student_school_id = request.session.get('student_school_id')
 
@@ -418,20 +455,24 @@ def delete_student(request, user_school_id, student_school_id):
 # CLASSES
 
 def manage_class(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     class_levels = ClassLevel.objects.all()
     context = {
-        "user": user,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
         "class_levels": class_levels
     }
     return render(request, 'admin_templates/manage_class_template.html', context)
 
 def add_class(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     context = {
-        "user": user
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id
     }
     return render(request, "admin_templates/add_class_template.html", context)
 
@@ -456,6 +497,9 @@ def add_class_save(request, user_school_id):
 def edit_class(request, user_school_id, class_level_id):
     class_level = ClassLevel.objects.get(id=class_level_id)
     context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
         "user_school_id": user_school_id,
         "class_level": class_level,
     }
@@ -499,29 +543,32 @@ def delete_class(request, user_school_id, class_level_id):
 
 
 def manage_subject(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     subjects = Subject.objects.all()
     context = {
-        "user": user,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
         "subjects": subjects
     }
     return render(request, 'admin_templates/manage_subject_template.html', context)
 
 def add_subject(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     class_levels = ClassLevel.objects.all()
     staff_list = User.objects.filter(user_type='2')
     context = {
-        "user": user,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
         "class_levels": class_levels,
         "staff_list": staff_list
     }
     return render(request, 'admin_templates/add_subject_template.html', context)
 
 def add_subject_save(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     if request.method != "POST":
         messages.error(request, "Method Not Allowed!")
@@ -550,6 +597,9 @@ def edit_subject(request, user_school_id, subject_id):
     class_levels = ClassLevel.objects.all()
     staff_list = User.objects.filter(user_type='2')
     context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
         "user_school_id": user_school_id,
         "subject": subject,
         "class_levels": class_levels,
@@ -604,20 +654,24 @@ def delete_subject(request, user_school_id, subject_id):
 # SESSION
 
 def manage_session(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     sessions = Session.objects.all()
     context = {
-        "user": user,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
         "sessions": sessions
     }
     return render(request, "admin_templates/manage_session_template.html", context)
 
 def add_session(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
 
     context = {
-        "user": user
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id
     }
     return render(request, "admin_templates/add_session_template.html", context)
 
@@ -644,6 +698,9 @@ def add_session_save(request, user_school_id):
 def edit_session(request, user_school_id, session_id):
     session = Session.objects.get(id=session_id)
     context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
         "user_school_id": user_school_id,
         "session": session
     }

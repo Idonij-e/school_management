@@ -24,8 +24,8 @@ class CustomUserAdmin(UserAdmin):
 
     radio_fields = {"user_type": admin.HORIZONTAL, 'gender': admin.HORIZONTAL}
 
-admin.site.register(User, CustomUserAdmin)
-# admin.site.register(User)
+# admin.site.register(User, CustomUserAdmin)
+admin.site.register(User)
 admin.site.register(Administrator)
 admin.site.register(Staff)
 admin.site.register(Student)

@@ -20,7 +20,7 @@
                     </div>
                     <!-- /.card-header -->
                     <!-- form start -->
-                    <form role="form" method="POST" action="{% url 'add_staff_save' user.school_id%}">
+                    <form role="form" method="POST" action="{% url 'add_staff_save' user_school_id %}">
                         {% csrf_token %}
 
                         
@@ -74,6 +74,15 @@
                             <div class="form-group">
                                 <label>Password</label>
                                 <input type="password" class="form-control" name="password" placeholder="Password">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select name="gender" class="form-control">
+                                {% for gender in gender_data %} 
+                                    <option value="{{ gender.0 }}"> {{ gender.1 }}</option>
+                                {% endfor %}
+                                </select>
                             </div>
 
                             <div class="form-group">

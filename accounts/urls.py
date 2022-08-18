@@ -1,15 +1,17 @@
 from django.urls import path
 
-from . import views
-from . import views_admin
+from . import views, views_admin, views_staff, views_student
 
 urlpatterns = [
     path('', views.login_page, name="login_page"),
     path('doLogin', views.do_login, name="do_login"),
-    path('<user_school_id>', views_admin.home, name="admin_home"),
-    path('<user_school_id>/profile', views_admin.profile, name="admin_profile"),
     path('logout_user/', views.logout_user, name="logout_user"),
 
+
+    # ADMINISTRATOR
+
+    path('<user_school_id>/admin_home', views_admin.home, name="admin_home"),
+    path('<user_school_id>/profile', views_admin.profile, name="admin_profile"),
 
     path('<user_school_id>/add_staff', views_admin.add_staff, name="add_staff"),
     path('<user_school_id>/add_student', views_admin.add_student, name="add_student"),
@@ -47,4 +49,17 @@ urlpatterns = [
     path('<user_school_id>/manage_class', views_admin.manage_class, name="manage_class"),
     path('<user_school_id>/manage_subject', views_admin.manage_subject, name="manage_subject"),
     path('<user_school_id>/manage_session', views_admin.manage_session, name="manage_session"),
+
+
+
+    # STAFF
+    path('<user_school_id>/staff_home', views_staff.home, name="staff_home"),
+    path('<user_school_id>/staff_profile', views_staff.profile, name="staff_profile"),
+    path('<user_school_id>/edit_staff_profile', views_staff.edit_profile, name="edit_staff_profile"),
+
+    # STUDENT
+    path('<user_school_id>/student_home', views_student.home, name="student_home"),
+    path('<user_school_id>/student_profile', views_student.profile, name="student_profile"),
+    path('<user_school_id>/edit_student_profile', views_student.edit_profile, name="edit_student_profile"),
+
 ]
