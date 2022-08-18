@@ -2,7 +2,7 @@
 
 fork repository
 
-create an virtual environment
+create a virtual environment
 
 cd into virtual environment folder and clone your fork of this repository
 
