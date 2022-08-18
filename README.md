@@ -16,3 +16,9 @@ wait for packages to install then run command
 
 after packages have installed run command 
 `python manage.py runserver`
+
+school id for super user you create will be "B0000000" by default
+
+create super user, http://localhost:{YOUR PORT}/django_admin and add an admin there
+
+use http://localhost:8000/ to log in to app
