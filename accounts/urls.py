@@ -45,7 +45,7 @@ urlpatterns = [
     path('<user_school_id>/delete_session/<session_id>', views_admin.delete_session, name="delete_session"),    
 
     path('<user_school_id>/manage_staff', views_admin.manage_staff, name="manage_staff"),
-    path('<user_school_id>/manage_students', views_admin.manage_students, name="manage_students"),
+    path('<user_school_id>/manage_student', views_admin.manage_student, name="manage_student"),
     path('<user_school_id>/manage_class', views_admin.manage_class, name="manage_class"),
     path('<user_school_id>/manage_subject', views_admin.manage_subject, name="manage_subject"),
     path('<user_school_id>/manage_session', views_admin.manage_session, name="manage_session"),

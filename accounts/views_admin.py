@@ -249,7 +249,7 @@ def delete_staff(request, user_school_id, staff_school_id):
 
 # STUDENTS
 
-def manage_students(request, user_school_id):
+def manage_student(request, user_school_id):
 
     students = Student.objects.all()
     context = {
