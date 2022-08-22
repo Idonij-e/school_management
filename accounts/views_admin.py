@@ -78,6 +78,9 @@ def home(request, **kwargs):
     return render(request, 'admin_templates/home.html', context)
 
 
+
+
+
 # Administrator profile
 
 def profile(request, user_school_id):
@@ -91,6 +94,8 @@ def profile(request, user_school_id):
         'user_other_names': request.session.get('user_other_names'),
     }
     return render(request, 'admin_templates/admin_profile.html', context)
+
+
 
 def edit_admin_profile(request, user_school_id):
 
@@ -129,6 +134,13 @@ def edit_admin_profile(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + 'profile')    
 
+
+
+
+
+
+
+
 # STAFF
 
 def manage_staff(request, user_school_id):
@@ -143,6 +155,8 @@ def manage_staff(request, user_school_id):
 
     return render(request, 'admin_templates/manage_staff_template.html', context)
 
+
+
 def add_staff(request, user_school_id):
     context = {
         'user_first_name': request.session.get('user_first_name'),
@@ -151,6 +165,8 @@ def add_staff(request, user_school_id):
         "user_school_id": user_school_id
     }
     return render(request, "admin_templates/add_staff_template.html", context)
+
+
 
 def add_staff_save(request, user_school_id):
     if request.method != "POST":
@@ -189,6 +205,8 @@ def add_staff_save(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + '/add_staff')
 
+
+
 def edit_staff(request, user_school_id, staff_school_id):
 
     staff = User.objects.get(school_id=staff_school_id).staff
@@ -200,6 +218,8 @@ def edit_staff(request, user_school_id, staff_school_id):
         "staff": staff
     }
     return render(request, "admin_templates/edit_staff_template.html", context)
+
+
 
 def edit_staff_save(request, user_school_id):
     if request.method != "POST":
@@ -233,6 +253,8 @@ def edit_staff_save(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + '/edit_staff/' + staff_school_id)
 
+
+
 def delete_staff(request, user_school_id, staff_school_id):
     staff = User.objects.get(school_id=staff_school_id)
     
@@ -245,6 +267,12 @@ def delete_staff(request, user_school_id, staff_school_id):
         
     finally:
         return redirect("/" + user_school_id + "/manage_staff")
+
+
+
+
+
+
 
 
 # STUDENTS
@@ -261,8 +289,12 @@ def manage_student(request, user_school_id):
     }
     return render(request, 'admin_templates/manage_students_template.html', context)
 
+
+
+
 def add_student(request, user_school_id):
     form = AddStudentForm()
+
     context = {
         'user_first_name': request.session.get('user_first_name'),
         'user_last_name': request.session.get('user_last_name'),
@@ -271,6 +303,9 @@ def add_student(request, user_school_id):
         "form": form
     }
     return render(request, 'admin_templates/add_student_template.html', context)
+
+
+
 
 def add_student_save(request, user_school_id):
     
@@ -290,11 +325,9 @@ def add_student_save(request, user_school_id):
             phone_number = form.cleaned_data['phone_number']
             address = form.cleaned_data['address']
             session_id = form.cleaned_data['session_id']
-            class_level_id = form.cleaned_data['class_level_id']
+            class_level_id = form.cleaned_data['class_level_id'] if form.cleaned_data['class_level_id'] else request.session.get('class_level_id')
             gender = form.cleaned_data['gender']
-            username = generate_school_id()
-
-            
+            username = generate_school_id()        
 
     #         # Getting Profile Pic first
     #         # First Check whether the file is selected or not
@@ -341,6 +374,9 @@ def add_student_save(request, user_school_id):
         else:
             return redirect("/" + user_school_id + '/add_student')
 
+
+
+
 def edit_student(request, user_school_id, student_school_id):
     # Adding Student ID into Session Variable
     request.session['student_school_id'] = student_school_id
@@ -367,6 +403,8 @@ def edit_student(request, user_school_id, student_school_id):
         "form": form
     }
     return render(request, "admin_templates/edit_student_template.html", context)
+
+
 
 def edit_student_save(request, user_school_id):
     if request.method != "POST":
@@ -440,6 +478,8 @@ def edit_student_save(request, user_school_id):
         else:
             return redirect("/" + user_school_id + '/edit_student/' + student_school_id)
 
+
+
 def delete_student(request, user_school_id, student_school_id):
     student = User.objects.get(school_id=student_school_id)
     try:
@@ -451,6 +491,13 @@ def delete_student(request, user_school_id, student_school_id):
 
     finally:
         return redirect("/" + user_school_id + '/manage_students')
+
+
+
+
+
+
+
 
 # CLASSES
 
@@ -466,6 +513,8 @@ def manage_class(request, user_school_id):
     }
     return render(request, 'admin_templates/manage_class_template.html', context)
 
+
+
 def add_class(request, user_school_id):
 
     context = {
@@ -475,6 +524,8 @@ def add_class(request, user_school_id):
         "user_school_id": user_school_id
     }
     return render(request, "admin_templates/add_class_template.html", context)
+
+
 
 def add_class_save(request, user_school_id):
     if request.method != "POST":
@@ -494,6 +545,8 @@ def add_class_save(request, user_school_id):
         finally:
             return redirect("/" + user_school_id +  '/add_class')
 
+
+
 def edit_class(request, user_school_id, class_level_id):
     class_level = ClassLevel.objects.get(id=class_level_id)
     context = {
@@ -504,6 +557,8 @@ def edit_class(request, user_school_id, class_level_id):
         "class_level": class_level,
     }
     return render(request, 'admin_templates/edit_class_template.html', context)
+
+
 
 def edit_class_save(request, user_school_id):
     if request.method != "POST":
@@ -526,6 +581,75 @@ def edit_class_save(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + '/edit_class/' + class_level_id)
 
+
+
+def manage_class_students(request, user_school_id, class_level_name):
+    class_level = ClassLevel.objects.get(class_level_name=class_level_name)
+    students = class_level.student_set.all()
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "class_level": class_level,
+        "students": students,
+    }
+
+    return render(request, "admin_templates/manage_students_template.html", context)
+
+
+
+def manage_class_add_student(request, user_school_id, class_level_name):
+    class_level = ClassLevel.objects.get(class_level_name=class_level_name) 
+    form = AddStudentForm()
+
+    # Filling the form with Data from request.session object when
+    # add_student view is accessed via manage_class > manage_students
+    form.fields['class_level_id'].initial = class_level.id
+    form.fields['class_level_id'].disabled = True
+
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "form": form,
+        "class_level": class_level,
+    }
+    return render(request, 'admin_templates/add_student_template.html', context)
+
+
+
+def manage_class_subjects(request, user_school_id, class_level_name):
+    class_level = ClassLevel.objects.get(class_level_name=class_level_name)
+    subjects = class_level.subject_set.all()
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "class_level": class_level,
+        "subjects": subjects,
+    }
+
+    return render(request, "admin_templates/manage_subjects_template.html", context)
+
+def manage_class_add_subject(request, user_school_id, class_level_name):
+
+    class_levels = ClassLevel.objects.all()
+    staff_list = User.objects.filter(user_type='2')
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "class_levels": class_levels,
+        "class_level_name": class_level_name,
+        "staff_list": staff_list
+    }
+    return render(request, 'admin_templates/add_subject_template.html', context)
+
+
 def delete_class(request, user_school_id, class_level_id):
     class_level = ClassLevel.objects.get(id=class_level_id)
     try:
@@ -537,6 +661,11 @@ def delete_class(request, user_school_id, class_level_id):
 
     finally:
         return redirect("/" + user_school_id + '/manage_class')
+
+
+
+
+
 
 
 # SUBJECTS
@@ -552,7 +681,9 @@ def manage_subject(request, user_school_id):
         "user_school_id": user_school_id,
         "subjects": subjects
     }
-    return render(request, 'admin_templates/manage_subject_template.html', context)
+    return render(request, 'admin_templates/manage_subjects_template.html', context)
+
+
 
 def add_subject(request, user_school_id):
 
@@ -567,6 +698,8 @@ def add_subject(request, user_school_id):
         "staff_list": staff_list
     }
     return render(request, 'admin_templates/add_subject_template.html', context)
+
+
 
 def add_subject_save(request, user_school_id):
 
@@ -592,6 +725,8 @@ def add_subject_save(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + '/add_subject')
 
+
+
 def edit_subject(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     class_levels = ClassLevel.objects.all()
@@ -606,6 +741,8 @@ def edit_subject(request, user_school_id, subject_id):
         "staff_list": staff_list,
     }
     return render(request, 'admin_templates/edit_subject_template.html', context)
+
+
 
 def edit_subject_save(request, user_school_id):
     if request.method != "POST":
@@ -639,6 +776,8 @@ def edit_subject_save(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + '/edit_subject/' + subject_id)
 
+
+
 def delete_subject(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     try:
@@ -650,6 +789,13 @@ def delete_subject(request, user_school_id, subject_id):
 
     finally:
         return redirect("/" + user_school_id + '/manage_subject')
+
+
+
+
+
+
+
 
 # SESSION
 
@@ -665,6 +811,8 @@ def manage_session(request, user_school_id):
     }
     return render(request, "admin_templates/manage_session_template.html", context)
 
+
+
 def add_session(request, user_school_id):
 
     context = {
@@ -674,6 +822,8 @@ def add_session(request, user_school_id):
         "user_school_id": user_school_id
     }
     return render(request, "admin_templates/add_session_template.html", context)
+
+
 
 def add_session_save(request, user_school_id):
     if request.method != "POST":
@@ -695,6 +845,8 @@ def add_session_save(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + '/manage_session')
 
+
+
 def edit_session(request, user_school_id, session_id):
     session = Session.objects.get(id=session_id)
     context = {
@@ -705,6 +857,8 @@ def edit_session(request, user_school_id, session_id):
         "session": session
     }
     return render(request, "admin_templates/edit_session_template.html", context)
+
+
 
 def edit_session_save(request, user_school_id):
     if request.method != "POST":
@@ -729,6 +883,8 @@ def edit_session_save(request, user_school_id):
 
         finally:
             return redirect("/" + user_school_id + '/manage_session')
+
+
 
 def delete_session(request,user_school_id, session_id):
     session = Session.objects.get(id=session_id)

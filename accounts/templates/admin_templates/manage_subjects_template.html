@@ -1,7 +1,13 @@
 {% extends 'admin_templates/base_template.html' %}
 
 {% block page_title %}
-    Manage Subjects
+    {% if not class_level %}
+        Manage Subjects
+    {% endif %}
+
+    {% if class_level %}
+        <a href="{% url 'manage_class' user_school_id %}">Manage Class</a>  >  <a href="{% url 'manage_class_subjects' user_school_id class_level.class_level_name %}">{{ class_level.class_level_name.upper }} Subjects</a>
+    {% endif %}
 {% endblock page_title %}
 
 {% block main_content %}
@@ -11,7 +17,13 @@
 <section class="content">
         <div class="container-fluid">
 
+        {% if not class_level %}
             <a class="btn btn-primary" href="{% url 'add_subject' user_school_id %}" role="button">+ Add Subject</a> <br/>&nbsp;
+        {% endif %}
+
+        {% if class_level %}
+            <a class="btn btn-primary" href="{% url 'manage_class_add_subject' user_school_id class_level.class_level_name %}" role="button">+ Add Subject to {{ class_level.class_level_name.upper }} Class</a> <br/>&nbsp;
+        {% endif %}
 
             {% if messages %}
                                 <div class="form-group">
@@ -59,7 +71,6 @@
                             <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
-                                <th>ID</th>
                                 <th>Subject Name</th>
                                 <th>Class</th>
                                 <th>Staff</th>
@@ -71,7 +82,6 @@
                             <tbody>
                                 {% for subject in subjects %}
                                 <tr>
-                                <td>{{ subject.id }}</td>
                                 <td>{{ subject.subject_name }}</td>
                                 <td>{{ subject.class_level.class_level_name }}</td>
                                 <td>{{ subject.staff.first_name }} {{ subject.staff.last_name }}</td>

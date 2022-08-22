@@ -61,13 +61,13 @@
                             <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
-                                <th>ID</th>
+                                <th>School ID</th>
                                 <th>First Name</th>
                                 <th>Last Name</th>
-                                <!-- <th>Username</th> -->
+                                <th>Other Names</th>
                                 <th>Email</th>
-                                <!-- <th>Address</th> -->
-                                <!-- <th>Last Login</th> -->
+                                <th>Phone Number</th>
+                                <th>Gender</th>
                                 <th>Date Joined</th>
                                 <th>Action</th>
                                 </tr>
@@ -78,10 +78,10 @@
                                 <td>{{ staff.user.school_id }}</td>
                                 <td>{{ staff.user.first_name }}</td>
                                 <td>{{ staff.user.last_name }}</td>
-                                <!-- <td>{{ staff.user.username }}</td> -->
+                                <td>{{ staff.user.other_names }}</td>
                                 <td>{{ staff.user.email }}</td>
-                                <!-- <td>{{ staff.address }}</td> -->
-                                <!-- <td>{{ staff.user.last_login }}</td> -->
+                                <td>{{ staff.user.phone_number }}</td>
+                                <td>{{ staff.user.get_gender_display }}</td>
                                 <td>{{ staff.user.date_joined }}</td>
                                 <td>
                                     <a href="{% url 'edit_staff' user_school_id staff.user.school_id %}" class="btn btn-success">Edit</a> 

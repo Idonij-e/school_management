@@ -1,7 +1,12 @@
 {% extends 'admin_templates/base_template.html' %}
 
 {% block page_title %}
-    Add Subject
+    {% if not class_level_name %}
+        Add Subject
+    {% endif %}
+    {% if class_level_name %}
+        Add Subject to {{ class_level_name.upper }} Class
+    {% endif %}
 {% endblock page_title %}
 
 {% block main_content %}
@@ -11,7 +16,7 @@
 <section class="content">
         <div class="container-fluid">
 
-            <a class="btn btn-secondary" href="{% url 'manage_subject' user_school_id %}" role="button"> &larr; Back</a> <br/>&nbsp;
+            <a id="back_button" class="btn btn-secondary" href="" role="button"> &larr; Back</a> <br/>&nbsp;
 
             <div class="row">
                 <div class="col-md-12">
@@ -60,9 +65,9 @@
 
                             <div class="form-group">
                                 <label>Class </label>
-                                <select class="form-control" name="class">
+                                <select class="form-control" name="class" {% if class_level_name %} disabled {% endif %} >
                                     {% for class_level in class_levels %}
-                                        <option value="{{ class_level.id }}">{{ class_level.class_level_name }}</option>
+                                        <option value="{{ class_level.id }}" {% if class_level_name == class_level.class_level_name %} selected {% endif %}>{{ class_level.class_level_name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -93,3 +98,20 @@
       </section>
 
   {% endblock main_content %}
+
+  {% block custom_js %}
+    {% comment %} Checking if email and username already exists or not usin Ajax {% endcomment %}
+
+    <script>
+        $('form').submit(function(e) {
+            $(':disabled').each(function(e) {
+                $(this).removeAttr('disabled');
+            })
+        });
+
+        $( "#back_button" ).on( "click", function() {
+            window.history.back();
+        });
+    </script>
+
+  {% endblock custom_js %}

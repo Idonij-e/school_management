@@ -1,7 +1,15 @@
 {% extends 'admin_templates/base_template.html' %}
 
 {% block page_title %}
-    Manage Student
+    {% if not class_level %}
+        Manage Student  
+    {% endif %}
+    
+    {% if class_level %}
+        <a href="{% url 'manage_class' user_school_id %}">Manage Class</a>  >  <a href="{% url 'manage_class_students' user_school_id class_level.class_level_name %}">{{ class_level.class_level_name.upper }} Students</a>
+    {% endif %}
+
+
 {% endblock page_title %}
 
 {% block main_content %}
@@ -11,7 +19,14 @@
 <section class="content">
         <div class="container-fluid">
 
-            <a class="btn btn-primary" href="{% url 'add_student' user_school_id %}" role="button">+ Add Student</a> <br/>&nbsp;
+            {% if not class_level %}
+                <a class="btn btn-primary" href="{% url 'add_student' user_school_id %}" role="button">+ Add Student</a> <br/>&nbsp;
+            {% endif %}
+
+            {% if class_level %}
+                <a class="btn btn-primary" href="{% url 'manage_class_add_student' user_school_id class_level.class_level_name %}" role="button">+ Add Student to {{ class_level.class_level_name.upper }} Class</a> <br/>&nbsp;
+            {% endif %}
+            
             
             {% if messages %}
                                 <div class="form-group">
@@ -43,7 +58,7 @@
                     <!-- general form elements -->
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Student Details</h3>
+                            <h3 class="card-title">{% if class_level %} {{ class_level.class_level_name }} {% endif %} Student Details</h3>
 
                             <div class="card-tools">
                             <div class="input-group input-group-sm" style="width: 150px;">
@@ -60,41 +75,45 @@
                             <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
-                                <th>School ID</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Address</th>
-                                <th>Gender</th>
-                                <th>Profile Pic</th>
-                                <th>Start Year</th>
-                                <th>End Year</th>
-                                <th>Class</th>
-                                <th>Last Login</th>
-                                <th>Date Joined</th>
-                                <th>Action</th>
+                                    <th>School ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Other Names</th>
+                                    <th>Email</th>
+                                    <th>Phone Number</th>
+                                    <th>Address</th>
+                                    <th>Gender</th>
+                                    <!-- <th>Profile Pic</th> -->
+                                    <th>Current Session Start</th>
+                                    <th>Current Session End</th>
+                                    <th>Class</th>
+                                    <!-- <th>Last Login</th> -->
+                                    <th>Date Joined</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for student in students %}
-                                <tr>
-                                <td>{{ student.user.school_id }}</td>
-                                <td>{{ student.user.first_name }}</td>
-                                <td>{{ student.user.last_name }}</td>
-                                <td>{{ student.user.email }}</td>
-                                <td>{{ student.address }}</td>
-                                <td>{{ student.user.get_gender_display }}</td>
-                                <td> <img src="{{ student.user.profile_pic }}" style="width: 100px;" /> </td>
-                                <td>{{ student.session.session_start_year }}</td>
-                                <td>{{ student.session.session_end_year }}</td>
-                                <td>{{ student.class_level.class_level_name }}</td>
-                                <td>{{ student.user.last_login }}</td>
-                                <td>{{ student.user.date_joined }}</td>
-                                <td>
-                                    <a href="{% url 'edit_student' user_school_id student.user.school_id %}" class="btn btn-success">Edit</a> 
-                                    <a href="{% url 'delete_student' user_school_id student.user.school_id %}" class="btn btn-danger">Delete</a>
-                                </td>
-                                </tr>
+                                    <tr>
+                                        <td>{{ student.user.school_id }}</td>
+                                        <td>{{ student.user.first_name }}</td>
+                                        <td>{{ student.user.last_name }}</td>
+                                        <td>{{ student.user.other_names }}</td>
+                                        <td>{{ student.user.email }}</td>
+                                        <th>{{ student.user.phone_number }}</th>
+                                        <td>{{ student.address }}</td>
+                                        <td>{{ student.user.get_gender_display }}</td>
+                                        <!-- <td> <img src="{{ student.user.profile_pic }}" style="width: 100px;" /> </td> -->
+                                        <td>{{ student.session.session_start }}</td>
+                                        <td>{{ student.session.session_end }}</td>
+                                        <td>{{ student.class_level.class_level_name }}</td>
+                                        <!-- <td>{{ student.user.last_login }}</td> -->
+                                        <td>{{ student.user.date_joined }}</td>
+                                        <td>
+                                            <a href="{% url 'edit_student' user_school_id student.user.school_id %}" class="btn btn-success">Edit</a> 
+                                            <a href="{% url 'delete_student' user_school_id student.user.school_id %}" class="btn btn-danger">Delete</a>
+                                        </td>
+                                    </tr>
                                 {% endfor %}
                                 
                             </tbody>
