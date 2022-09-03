@@ -1,7 +1,9 @@
 {% extends 'admin_templates/base_template.html' %}
 
 {% block page_title %}
-    Add Session
+    
+Current Session
+       
 {% endblock page_title %}
 
 {% block main_content %}
@@ -11,18 +13,18 @@
 <section class="content">
         <div class="container-fluid">
 
-            <a class="btn btn-secondary" href="{% url 'manage_session' user_school_id %}" role="button"> &larr; Back</a> <br/>&nbsp;
+            <a id="back_button" class="btn btn-secondary" href="{% url 'manage_session' user_school_id %}" role="button"> &larr; Back</a> <br/>&nbsp;
 
             <div class="row">
                 <div class="col-md-12">
                     <!-- general form elements -->
                     <div class="card card-primary">
                     <div class="card-header">
-                        <h3 class="card-title">Add Session</h3>
+                        <h3 class="card-title">Select Current Session</h3>
                     </div>
                     <!-- /.card-header -->
                     <!-- form start -->
-                    <form role="form" method="POST" action="{% url 'add_session_save' user_school_id %}">
+                    <form role="form" method="POST" action="{% url 'select_session_save' user_school_id %}">
                         {% csrf_token %}
 
                         
@@ -53,21 +55,21 @@
                             
 
                         <div class="card-body">
-                            <div class="form-group">
-                                <label>Session Start Year</label>
-                                <input type="number" min="2021" class="form-control" name="session_start" placeholder="Enter Session Start Year">
-                            </div>
 
                             <div class="form-group">
-                                <label>Session End Year</label>
-                                <input type="number" min="2021" class="form-control" name="session_end" placeholder="Enter Session Start Year">
+                                <label>Select Current Session </label>
+                                <select class="form-control" name="session">
+                                    {% for session in sessions %}
+                                        <option value="{{ session.id }}">{{ session.session_start }}/{{ session.session_end }} Session</option>
+                                    {% endfor %}
+                                </select>
                             </div>
 
                         </div>
                         <!-- /.card-body -->
 
                         <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">Add Session</button>
+                        <button type="submit" class="btn btn-primary">Select Current Session</button>
                         </div>
                     </form>
                     </div>
@@ -80,3 +82,20 @@
       </section>
 
   {% endblock main_content %}
+
+  {% block custom_js %}
+    {% comment %} Checking if email and username already exists or not usin Ajax {% endcomment %}
+
+    <script>
+        $('form').submit(function(e) {
+            $(':disabled').each(function(e) {
+                $(this).removeAttr('disabled');
+            })
+        });
+
+        $( "#back_button" ).on( "click", function() {
+            window.history.back();
+        });
+    </script>
+
+  {% endblock custom_js %}

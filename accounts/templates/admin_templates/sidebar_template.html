@@ -13,10 +13,15 @@
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
           <div class="image">
-            <img src="{% static 'dist/img/user2-160x160.jpg' %}" class="img-circle elevation-2" alt="User Image">
+            {% if user.profile_pic %}
+            <img src="{{ user.profile_pic.url }}" class="img-circle elevation-2" alt="User Image">
+            {% else %}
+            <img src="{% static "assets/images/user.jpg" %}" class="img-circle elevation-2" alt="User Image">
+            {% endif %}
           </div>
           <div class="info">
-            <a href="{% url 'admin_profile' user_school_id %}" class="d-block">{{ user_first_name }} {{ user_last_name }}</a>
+            <a href="{% url 'admin_profile' user_school_id %}" class="d-block">Welcome {{ user_first_name }} {{ user_last_name }}</a>
+            <p style="color: #fff;">Profile ID: {{ user_school_id }}</p>
           </div>
         </div>
 
@@ -99,6 +104,24 @@
               </a>
             </li>
 
+            <li class="nav-item dropdown">
+              <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="nav-icon fas fa-th"></i>
+                <p>
+                  Current Students in Each Class
+                </p>
+              </a>
+  
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                {% for course in courses %}
+                  <li>
+                    <a class="dropdown-item" href="{% url 'student_records' user_school_id course.class_level_name %}">{{ course.class_level_name }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+              
+            </li>
+            
             <li class="nav-item">
               {% url 'manage_subject' user_school_id as manage_subject %}
               {% url 'edit_subject' user_school_id subject.id as edit_subject %}
@@ -142,6 +165,28 @@
               </a>
             </li>
 
+            <li class="nav-item">
+              {% url 'manage_fee' user_school_id as manage_fee %}
+              {% url 'edit_fee' user_school_id fee.custom_id as edit_fee %}
+              <a href="{{ manage_fee }}" class="nav-link {% if manage_fee in request.path %} active {% endif %} {% if request.path == edit_fee %} active {% endif %}">
+                <i class="nav-icon fas fa-th"></i>
+                <p>
+                  Manage Fee
+                </p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              {% url 'add_fee' user_school_id as add_fee %}
+              <a href="{{ add_fee }}" class="nav-link {% if request.path == add_fee %} active {% endif %}">
+                <i class="nav-icon fas fa-th"></i>
+                <p>
+                  Add Fee
+                </p>
+              </a>
+            </li>
+            
+            
           </ul>
         </nav>
         <!-- /.sidebar-menu -->

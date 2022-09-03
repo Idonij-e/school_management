@@ -14,6 +14,9 @@ import os
 
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -143,3 +146,6 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'accounts.school_id_backend.SchoolIdBackend'
     ]
+
+PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')
+PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY')

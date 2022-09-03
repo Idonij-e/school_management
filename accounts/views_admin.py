@@ -2,9 +2,12 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
-from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject
-from accounts.forms import AddStudentForm, EditStudentForm
+from accounts.models import CurrentSession, User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee
+from accounts.forms import AddStudentForm, EditStudentForm, FeeForm
 from accounts.utils import generate_school_id
+
+import docx
+from io import StringIO
 
 def home(request, **kwargs):
     user = User.objects.get(school_id=kwargs.get('user_school_id'))
@@ -73,6 +76,7 @@ def home(request, **kwargs):
         "student_count_list_in_subject": student_count_list_in_subject,
         "staff_name_list": staff_name_list,
         "student_name_list": student_name_list,
+        "courses": class_level_all
     }
 
     return render(request, 'admin_templates/home.html', context)
@@ -324,7 +328,7 @@ def add_student_save(request, user_school_id):
             password = form.cleaned_data['password']
             phone_number = form.cleaned_data['phone_number']
             address = form.cleaned_data['address']
-            session_id = form.cleaned_data['session_id']
+            dob = form.cleaned_data['dob']
             class_level_id = form.cleaned_data['class_level_id'] if form.cleaned_data['class_level_id'] else request.session.get('class_level_id')
             gender = form.cleaned_data['gender']
             username = generate_school_id()        
@@ -353,13 +357,11 @@ def add_student_save(request, user_school_id):
                 gender=gender)
 
                 user.student.address = address
+                user.student.address = dob
                 user.student.phone_number = phone_number
 
                 class_level = ClassLevel.objects.get(id=class_level_id)
                 user.student.class_level = class_level
-
-                session = Session.objects.get(id=session_id)
-                user.student.session = session
 
                 user.save()
 
@@ -389,9 +391,9 @@ def edit_student(request, user_school_id, student_school_id):
     form.fields['last_name'].initial = student_user.last_name
     form.fields['other_names'].initial = student_user.other_names
     form.fields['address'].initial = student_user.student.address
+    form.fields['dob'].initial = student_user.student.dob
     form.fields['class_level_id'].initial = student_user.student.class_level.id
     form.fields['gender'].initial = student_user.gender
-    form.fields['session_id'].initial = student_user.student.session.id
     form.fields['phone_number'].initial = student_user.phone_number
 
     context = {
@@ -423,9 +425,9 @@ def edit_student_save(request, user_school_id):
             last_name = form.cleaned_data['last_name']
             other_names = form.cleaned_data['other_names']
             address = form.cleaned_data['address']
+            dob = form.cleaned_data['dob']
             class_level_id = form.cleaned_data['class_level_id']
             gender = form.cleaned_data['gender']
-            session_id = form.cleaned_data['session_id']
             phone_number = form.cleaned_data['phone_number']
 
             # Getting Profile Pic first
@@ -453,12 +455,10 @@ def edit_student_save(request, user_school_id):
                 # Then Update Students Table
                 student_model = user.student
                 student_model.address = address
+                student_model.dob = dob
 
                 class_level = ClassLevel.objects.get(id=class_level_id)
                 student_model.class_level = class_level
-
-                session = Session.objects.get(id=session_id)
-                student_model.session = session
 
                 # if profile_pic_url != None:
                 #     student_model.profile_pic = profile_pic_url
@@ -470,7 +470,7 @@ def edit_student_save(request, user_school_id):
                 messages.success(request, "Student Updated Successfully!")
 
             except:
-                messages.success(request, "Failed to Uupdate Student.")
+                messages.success(request, "Failed to Update Student.")
 
             finally:
                 return redirect("/" + user_school_id + '/edit_student/' + student_school_id)
@@ -846,6 +846,50 @@ def add_session_save(request, user_school_id):
             return redirect("/" + user_school_id + '/manage_session')
 
 
+def select_session(request, user_school_id):
+    
+    sessions = Session.objects.all()
+    #try:
+    #    current_session = CurrentSession.objects.all()
+    #except:
+    #    current_session = None
+    context = {
+        #'current_session': current_session,
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "sessions":sessions
+    }
+    return render(request, "admin_templates/current_session.html", context)
+
+
+def select_session_save(request, user_school_id):
+
+    if request.method != "POST":
+        messages.error(request, "Method Not Allowed!")
+        return redirect("/" + user_school_id + '/current_session')
+    else:
+        session_id = request.POST.get('session')
+        session = Session.objects.get(id=session_id)
+
+        try:
+            #try:
+            #    session_model = CurrentSession.objects.all()
+            #    session_model.delete()
+            #except:
+            #    session_model = None
+            
+            current_session = CurrentSession(session=session)
+            current_session.save()
+            messages.success(request, "Current Session Created Successfully!")
+
+        except:
+            messages.error(request, "Failed to Create Current Session!")
+
+        finally:
+            return redirect("/" + user_school_id + '/current_session')
+
 
 def edit_session(request, user_school_id, session_id):
     session = Session.objects.get(id=session_id)
@@ -897,3 +941,148 @@ def delete_session(request,user_school_id, session_id):
     
     finally:
         return redirect("/" + user_school_id + '/manage_session')
+
+
+
+#FEES
+def manage_fee(request, user_school_id):
+    fee_list = Fee.objects.all()
+    context = { 
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "fee_list": fee_list
+        }
+    return render(request,"admin_templates/manage_fee_template.html", context)
+
+
+def add_fee(request, user_school_id):
+    form = FeeForm()
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "form":form
+    }
+    
+    return render(request,"admin_templates/add_fee_template.html", context)
+    
+
+def add_fee_save(request, user_school_id):
+    if request.method=="POST":
+        form = FeeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request,"Successfully Added Fee")
+            #return HttpResponseRedirect(reverse("add_fee"))
+            return redirect("/" + user_school_id + '/add_fee')
+        else:
+            form = FeeForm(request.POST)
+            return redirect("/" + user_school_id + '/add_fee')
+    else:
+        #return HttpResponse("Method Not Allowed")
+        messages.error(request, "Invalid Method")
+        return redirect("/" + user_school_id + '/add_fee')    
+
+def edit_fee(request, user_school_id, custom_id):
+    fee=Fee.objects.get(custom_id=custom_id)
+    form = FeeForm(request.POST or None, instance=fee)
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "fee": fee,
+        "form":form
+    }
+    if form.is_valid():
+            form.save()
+            messages.success(request,"Successfully Edited Fee")
+            #return redirect(reverse("manage_fee"))
+            return redirect("/" + user_school_id + "/manage_fee")
+    return render(request,"admin_templates/edit_fee_template.html", context)
+
+
+def delete_fee(request, user_school_id, custom_id):
+    fee=Fee.objects.get(custom_id=custom_id)
+    try:
+        fee.delete()
+        messages.success(request, "Fee Deleted Successfully.")
+
+    except:
+        messages.error(request, "Failed to Delete Fee.")
+    
+    finally:
+        return redirect("/" + user_school_id + '/manage_fee')
+
+
+
+#OTHER VIEWS
+def student_records(request, user_school_id, course_id):
+    course = ClassLevel.objects.get(class_level_name=course_id)
+    students = course.student_set.all()
+    context = { 
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "course": course,
+        "students":students
+        }
+    return render(request,"admin_templates/student_list.html", context)
+
+def student_records_doc(request, course_id):
+    #pip install python-docx
+    #import docx
+    #from django.http import HttpResponse
+    #from cStringIO import StringIO
+
+    course = ClassLevel.objects.get(id=course_id)
+    students = course.student_set.all()
+
+    doc=docx.Document()
+    doc.add_heading('Students in ' + str(course.class_level_name), 0)
+    #student_list = []
+    #students=Student.objects.all().order_by('-course_id.created_at')
+    student_list = []
+    for student in students:
+        small_student=(student.user.school_id,student.user.first_name,student.user.last_name)
+        student_list.append(small_student)
+    table = doc.add_table(rows=1, cols=3)
+    row = table.rows[0].cells
+    row[0].text = 'SCHOOL ID'
+    #row[1].text = 'CLASS'
+    row[1].text = 'FIRST NAME'
+    row[2].text = 'LAST NAME'
+    #row[3].text = 'LOGIN PASSWORD'
+
+    for id, first, last in student_list:
+        row.table.add_row().cells
+        row[0].text = str(id)
+        #row[1].text = str(course)
+        row[1].text = str(first)
+        row[2].text = str(last)
+        #row[3].text = str(password)
+
+    f = StringIO()
+    doc.save(f)
+    length = f.tell()
+    f.seek(0)
+    response = HttpResponse(f.getvalue(),
+    content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content_Disposition'] = 'attachment; filename=download.docx'
+    response['Content_Length'] = length
+    return response
+
+    #method 2
+    #import io
+    #buffer = io.BytesIO()
+    #doc.save(buffer)
+    #buffer.seek(0)
+    #response = StreamingHttpResponse(streaming_content=buffer,
+    #content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    #response['Content_Disposition'] = 'attachment;filename=download.docx'
+    #response['Content_Encoding'] = 'UTF-8'
+    #return response

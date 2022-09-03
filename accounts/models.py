@@ -5,6 +5,11 @@ from django.dispatch import receiver
 
 from .utils import generate_school_id
 from .managers import UserManager
+import secrets
+from .paystack import PayStack
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 
@@ -19,7 +24,7 @@ class User(AbstractUser):
     user_type = models.PositiveIntegerField(default=1, choices=user_type_data)
     other_names = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
-    profile_pic = models.CharField(blank=True, null=True, max_length=10000)
+    profile_pic = models.ImageField(blank=True, null=True, upload_to='images/')
     gender_data = (
         (1, "Female"),
         (2, "Male")
@@ -51,11 +56,19 @@ class Staff(models.Model):
 
 class Session(models.Model):
     id = models.AutoField(primary_key=True)
-    session_start = models.DateField()
-    session_end = models.DateField()
+    session_start = models.PositiveIntegerField()
+    session_end = models.PositiveIntegerField()
 
-    def __str__(self):
-        return str(self.session_start) + " ----to---- " + str(self.session_end)
+    def __str__(self) -> str:
+        return '{}/{} session'.format(self.session_start_year,self.session_end_year)
+
+
+class CurrentSession(models.Model):
+    session=models.ForeignKey(Session,on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return '{}/{} session'.format(self.session.session_start,self.session.session_end)
+
 
 
 
@@ -86,16 +99,62 @@ class Subject(models.Model):
 class Student(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete = models.CASCADE)
-    address = models.TextField()
+    address = models.TextField(null=True,blank=True)
     class_level = models.ForeignKey(ClassLevel, on_delete=models.DO_NOTHING, default=1)
-    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    #gender = models.CharField(max_length=50)
+    dob=models.DateField(null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.user.school_id + " " +  self.user.last_name + " " +  self.user.first_name
 
+term_choices = (("Not Term-related","Not Term-related"),("Term 1","Term 1"), ("Term 2","Term 2"), ("Term 3","Term 3"))
+PAYSTACK_RECEIPT_EMAIL = os.getenv('PAYSTACK_RECEIPT_EMAIL')
+class Fee(models.Model):
+    id=models.AutoField(primary_key=True)
+    fee_name=models.CharField(max_length=255)
+    fee_amount=models.PositiveIntegerField()
+    course_id=models.ManyToManyField(ClassLevel)
+    term=models.CharField(max_length=50, choices=term_choices)
+    custom_id =models.CharField(max_length=10)
+    fee_email = models.EmailField(max_length=255, default=PAYSTACK_RECEIPT_EMAIL)
 
+class Payment(models.Model):
+    fee_id=models.ForeignKey(Fee,on_delete=models.CASCADE)
+    ref = models.CharField(max_length=200)
+    verified = models.BooleanField(default=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+    
+
+    class Meta:
+        ordering = ('-date_created',)
+    
+
+    def __str__(self) -> str:
+        return f"Payment: {self.fee_id.fee_amount}"
+
+    def save(self, *args, **kwargs) -> None:
+        while not self.ref:
+            ref = secrets.token_urlsafe(50)
+            object_with_similar_ref = Payment.objects.filter(ref=ref)
+            if not object_with_similar_ref:
+                self.ref = ref
+        super().save(*args, **kwargs)
+
+    def amount_value(self) -> int:
+        return self.fee_id.fee_amount *100
+    
+    def verify_payment(self):
+        paystack = PayStack()
+        status, result = paystack.verify_payment(self.ref, self.fee_id.fee_amount)
+        if status:
+            if result['fee_id.fee_amount'] / 100 == self.fee_id.fee_amount:
+                self.verified = True
+            self.save()
+        if self.verified:
+            return True
+        return False
 
 
 #Creating Django Signals

@@ -18,12 +18,16 @@ urlpatterns = [
     path('<user_school_id>/add_class', views_admin.add_class, name="add_class"),
     path('<user_school_id>/add_subject', views_admin.add_subject, name="add_subject"),
     path('<user_school_id>/add_session', views_admin.add_session, name="add_session"),
+    path('<user_school_id>/current_session', views_admin.select_session, name="select_session"),
+    path('<user_school_id>/add_fee', views_admin.add_fee, name="add_fee"),
 
     path('<user_school_id>/add_staff_save', views_admin.add_staff_save, name="add_staff_save"),
     path('<user_school_id>/add_student_save', views_admin.add_student_save, name="add_student_save"),
     path('<user_school_id>/add_class_save', views_admin.add_class_save, name="add_class_save"),
     path('<user_school_id>/add_subject_save', views_admin.add_subject_save, name="add_subject_save"),
     path('<user_school_id>/add_session_save', views_admin.add_session_save, name="add_session_save"),
+    path('<user_school_id>/select_session_save', views_admin.select_session_save, name="select_session_save"),
+    path('<user_school_id>/add_fee_save', views_admin.add_fee_save, name="add_fee_save"),
 
     path('<user_school_id>/profile', views_admin.edit_admin_profile, name="edit_admin_profile"),
     path('<user_school_id>/edit_staff/<staff_school_id>', views_admin.edit_staff, name="edit_staff"),
@@ -31,6 +35,7 @@ urlpatterns = [
     path('<user_school_id>/edit_class/<class_level_id>', views_admin.edit_class, name="edit_class"),
     path('<user_school_id>/edit_subject/<subject_id>', views_admin.edit_subject, name="edit_subject"),
     path('<user_school_id>/edit_session/<session_id>', views_admin.edit_session, name="edit_session"),
+    path('<user_school_id>/edit_fee/<str:custom_id>', views_admin.edit_fee, name="edit_fee"),
 
     path('<user_school_id>/edit_staff_save', views_admin.edit_staff_save, name="edit_staff_save"),
     path('<user_school_id>/edit_student_save', views_admin.edit_student_save, name="edit_student_save"),
@@ -42,20 +47,23 @@ urlpatterns = [
     path('<user_school_id>/delete_student/<student_school_id>', views_admin.delete_student, name="delete_student"),
     path('<user_school_id>/delete_class/<class_level_id>', views_admin.delete_class, name="delete_class"),
     path('<user_school_id>/delete_subject/<subject_id>', views_admin.delete_subject, name="delete_subject"),    
-    path('<user_school_id>/delete_session/<session_id>', views_admin.delete_session, name="delete_session"),    
+    path('<user_school_id>/delete_session/<session_id>', views_admin.delete_session, name="delete_session"),
+    path('<user_school_id>/delete_fee/<custom_id>', views_admin.delete_fee, name="delete_fee"),    
 
     path('<user_school_id>/manage_staff', views_admin.manage_staff, name="manage_staff"),
     path('<user_school_id>/manage_student', views_admin.manage_student, name="manage_student"),
     path('<user_school_id>/manage_class', views_admin.manage_class, name="manage_class"),
     path('<user_school_id>/manage_subject', views_admin.manage_subject, name="manage_subject"),
     path('<user_school_id>/manage_session', views_admin.manage_session, name="manage_session"),
+    path('<user_school_id>/manage_fee', views_admin.manage_fee, name="manage_fee"),
 
     path('<user_school_id>/manage_class/<class_level_name>/manage_students', views_admin.manage_class_students, name="manage_class_students"),
     path('<user_school_id>/manage_class/<class_level_name>/manage_subjects', views_admin.manage_class_subjects, name="manage_class_subjects"),
     path('<user_school_id>/manage_class/<class_level_name>/add_student', views_admin.manage_class_add_student, name="manage_class_add_student"),
     path('<user_school_id>/manage_class/<class_level_name>/add_subject', views_admin.manage_class_add_subject, name="manage_class_add_subject"),
 
-
+    path('<user_school_id>/student_records/<course_id>/', views_admin.student_records, name="student_records"),
+    path('student_records_doc/<course_id>/', views_admin.student_records_doc, name="student_records_doc"),
 
 
 
@@ -77,5 +85,7 @@ urlpatterns = [
     path('<user_school_id>/student_home', views_student.home, name="student_home"),
     path('<user_school_id>/student_profile', views_student.profile, name="student_profile"),
     path('<user_school_id>/edit_student_profile', views_student.edit_profile, name="edit_student_profile"),
+    path('<user_school_id>/make_payment/<custom_id>', views_student.initiate_payment, name="initiate_payment"),
+    path('<str:ref>/', views_student.verify_payment, name="verify_payment")
 
 ]

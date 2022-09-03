@@ -1,19 +1,15 @@
 {% extends 'admin_templates/base_template.html' %}
-
 {% block page_title %}
-    Manage Session
+Manage Fee
 {% endblock page_title %}
-
 {% block main_content %}
-
-{% load static %}
+    <!-- Main content -->
+    {% load static %}
 
 <section class="content">
         <div class="container-fluid">
 
-            <a class="btn btn-primary" href="{% url 'add_session' user_school_id%}" role="button">+ Add Session</a> <br/>&nbsp;
-            <br>
-            <a class="btn btn-secondary" href="{% url 'select_session' user_school_id%}" role="button">Select Current Session</a> <br/>&nbsp;
+            <a class="btn btn-primary" href="{% url 'add_fee' user_school_id %}" role="button">+ Add Fee</a> <br/>&nbsp;
 
             {% if messages %}
                                 <div class="form-group">
@@ -38,13 +34,15 @@
                                 </div>
                                 </div>
                                 {% endif %}
+                                
 
             <div class="row">
+
                 <div class="col-md-12">
                     <!-- general form elements -->
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Session Details</h3>
+                            <h3 class="card-title">Fee Details</h3>
 
                             <div class="card-tools">
                             <div class="input-group input-group-sm" style="width: 150px;">
@@ -56,39 +54,48 @@
                             </div>
                             </div>
                         </div>
-                        <!-- /.card-header -->
-                        <div class="card-body table-responsive p-0">
-                            <table class="table table-hover text-nowrap">
-                            <thead>
-                                <tr>
-                                <th>Session Start</th>
-                                <th>Session End</th>
-                                <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for session in sessions %}
-                                <tr>
-                                <td>{{ session.session_start }}</td>
-                                <td>{{ session.session_end }}</td>
-                                <td>
-                                    <a href="{% url 'edit_session' user_school_id session.id %}" class="btn btn-success">Edit</a> 
-                                    <a href="{% url 'delete_session' user_school_id session.id %}" class="btn btn-danger">Delete</a>
-                                </td>
-                                </tr>
-                                {% endfor %}
-                                
-                            </tbody>
-                            </table>
-                        </div>
-                        <!-- /.card-body -->
-                        </div>
-                    <!-- /.card -->
-
-                </div>
+              <!-- /.card-header -->
+              <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Fee Name</th>
+                      <th>Class(es)</th>
+                      <th>Fee Amount</th>
+                      <th>Term</th>
+                      <th>Custom ID</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for fee in fee_list %}
+                    <tr>
+                      <td>{{ fee.id }}</td>
+                      <td>{{ fee.fee_name }}</td>
+                      <td>
+                      {% for course in fee.course_id.all %}
+                      <li>{{ course }}</li>
+                      {% endfor %}
+                      </td>
+                      <td>{{ fee.fee_amount }}</td>
+                      <td>{{ fee.term }}</td>
+                      <td>{{ fee.custom_id }}</td>
+                      <td>
+                        <a href="{% url 'edit_fee' user_school_id fee.custom_id %}" class="btn btn-success">Edit</a>
+                        <a href="{% url 'delete_fee' user_school_id fee.custom_id %}" class="btn btn-danger">Delete</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <!-- /.card-body -->
             </div>
-
-        </div><!-- /.container-fluid -->
-      </section>
-
-  {% endblock main_content %}
+            <!-- /.card -->
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /.content -->
+{% endblock main_content %}
