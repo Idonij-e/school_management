@@ -82,10 +82,9 @@
                                     <th>Email</th>
                                     <th>Phone Number</th>
                                     <th>Address</th>
+                                    <th>DOB</th>
                                     <th>Gender</th>
                                     <!-- <th>Profile Pic</th> -->
-                                    <th>Current Session Start</th>
-                                    <th>Current Session End</th>
                                     <th>Class</th>
                                     <!-- <th>Last Login</th> -->
                                     <th>Date Joined</th>
@@ -102,10 +101,9 @@
                                         <td>{{ student.user.email }}</td>
                                         <th>{{ student.user.phone_number }}</th>
                                         <td>{{ student.address }}</td>
+                                        <td>{{ student.dob }}</td>
                                         <td>{{ student.user.get_gender_display }}</td>
                                         <!-- <td> <img src="{{ student.user.profile_pic }}" style="width: 100px;" /> </td> -->
-                                        <td>{{ student.session.session_start }}</td>
-                                        <td>{{ student.session.session_end }}</td>
                                         <td>{{ student.class_level.class_level_name }}</td>
                                         <!-- <td>{{ student.user.last_login }}</td> -->
                                         <td>{{ student.user.date_joined }}</td>
