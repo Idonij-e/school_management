@@ -1,6 +1,6 @@
 from django import forms 
-from django.forms import Form
-from accounts.models import ClassLevel, Session, Fee
+from django.forms import Form, ChoiceField
+from accounts.models import ClassLevel, Session, Fee, Subject
 
 
 def get_class_level_choices():
@@ -39,7 +39,9 @@ def get_class_level_choices():
 class DateInput(forms.DateInput):
     input_type = "date"
 
-    
+class ChoiceNoValidation(ChoiceField):
+    def validate(self, value):
+        pass    
 
 
 class AddStudentForm(forms.Form):
@@ -98,3 +100,33 @@ class FeeForm(forms.ModelForm):
             'course_id':forms.CheckboxSelectMultiple(attrs={"placeholder":"Class(es)"}),
             'custom_id':forms.TextInput(attrs={"class":"form-control", "placeholder":"#xxxx"}),
         }
+
+class EditResultForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.staff=kwargs.pop("staff")
+        super(EditResultForm,self).__init__(*args,**kwargs)
+        subject_list=[]
+        try:
+            subjects=Subject.objects.filter(staff=self.staff)
+            for subject in subjects:
+                subject_single=(subject.id,subject.subject_name)
+                subject_list.append(subject_single)
+        except:
+            subject_list=[]
+        self.fields['subject_id'].choices=subject_list
+
+    session_list=[]
+    try:
+        sessions=Session.object.all()
+        for session in sessions:
+            session_single=(session.id,str(session.session_start)+"/"+str(session.session_end_year)+" session")
+            session_list.append(session_single)
+    except:
+        session_list=[]
+
+    subject_id=forms.ChoiceField(label="Subject",widget=forms.Select(attrs={"class":"form-control"}))
+    session_ids=forms.ChoiceField(label="Session Year",choices=session_list,widget=forms.Select(attrs={"class":"form-control"}))
+    student_ids=ChoiceNoValidation(label="Student",widget=forms.Select(attrs={"class":"form-control"}))
+    test_one_marks=forms.CharField(label="1st Test Marks",widget=forms.TextInput(attrs={"class":"form-control"}))
+    test_two_marks=forms.CharField(label="2nd Test Marks",widget=forms.TextInput(attrs={"class":"form-control"}))
+    exam_marks=forms.CharField(label="Exam Marks",widget=forms.TextInput(attrs={"class":"form-control"}))

@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.conf import settings
 
-from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment
+from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment, StudentResult
 from accounts.forms import AddStudentForm, EditStudentForm
 from http.client import HTTPResponse
 
@@ -94,7 +94,8 @@ def edit_profile(request, user_school_id):
 
 def initiate_payment(request, user_school_id, fee_id):
     fee = Fee.objects.get(custom_id=fee_id)
-    payment_model = Payment(fee_id=fee)
+    user = User.objects.get(school_id=user_school_id)
+    payment_model = Payment(fee_id=fee, student=user)
     payment = payment_model.save()
 
     context = { 
@@ -106,7 +107,7 @@ def initiate_payment(request, user_school_id, fee_id):
         'payment': payment,
         'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY
         }
-    return render(request,"student_template/make_payment.html", context)
+    return render(request,"student_templates/make_payment.html", context)
 
 def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
     payment = get_object_or_404(Payment, ref=ref)
@@ -117,4 +118,35 @@ def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
         messages.error(request, "Verification Failed.")
     return redirect('initiate-payment')
 
+def payment_history(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+    student = user.student
+    course=ClassLevel.objects.get(id=student.class_level.id)
+    payment_all = Payment.objects.filter(student=user, verified=True)
+    context = { 
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        'payment_all': payment_all,
+        'course':course
+        }
+    return render(request,"student_templates/payment_history.html", context)
+
+def payment_pdf(request, ref):
+    pass
+
+def student_view_result(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+    #student=Student.objects.get(user=request.user.id)
+    studentresult=StudentResult.objects.filter(student=user.id)
+
+    context = { 
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "studentresult": studentresult
+        }
+    return render(request,"student_templates/student_result.html", context)
 
