@@ -24,7 +24,7 @@ class User(AbstractUser):
     user_type = models.PositiveIntegerField(default=1, choices=user_type_data)
     other_names = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
-    profile_pic = models.ImageField(blank=True, null=True, upload_to='images/')
+    profile_pic = models.ImageField(blank=True, null=True, upload_to='media/images/')
     gender_data = (
         (1, "Female"),
         (2, "Male")
@@ -122,6 +122,7 @@ class Fee(models.Model):
 
 class Payment(models.Model):
     fee_id=models.ForeignKey(Fee,on_delete=models.CASCADE)
+    student=models.ForeignKey(Student,on_delete=models.CASCADE)
     ref = models.CharField(max_length=200)
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -155,6 +156,18 @@ class Payment(models.Model):
         if self.verified:
             return True
         return False
+
+
+class StudentResult(models.Model):
+    id=models.AutoField(primary_key=True)
+    student=models.ForeignKey(Student,on_delete=models.CASCADE)
+    subject=models.ForeignKey(Subject,on_delete=models.CASCADE)
+    subject_exam_marks=models.FloatField(default=0)
+    subject_test_one_marks=models.FloatField(default=0)
+    subject_test_two_marks=models.FloatField(default=0)
+    #subject_assignment_marks=models.FloatField(default=0)
+    created_at=models.DateField(auto_now_add=True)
+    updated_at=models.DateField(auto_now_add=True)
 
 
 #Creating Django Signals
