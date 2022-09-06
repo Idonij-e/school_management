@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .utils import generate_school_id
+from .utils import generate_school_id, save_user_photo
 from .managers import UserManager
 import secrets
 from .paystack import PayStack
@@ -24,7 +24,7 @@ class User(AbstractUser):
     user_type = models.PositiveIntegerField(default=1, choices=user_type_data)
     other_names = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
-    profile_pic = models.ImageField(blank=True, null=True, upload_to='media/images/')
+    profile_pic = models.ImageField(blank=True, null=True, upload_to=save_user_photo)
     gender_data = (
         (1, "Female"),
         (2, "Male")
@@ -185,7 +185,7 @@ def create_user_profile(sender, instance, created, **kwargs):
         if instance.user_type == 2:
             Staff.objects.create(user=instance)
         if instance.user_type == 3:
-            Student.objects.create(user=instance, class_level=ClassLevel.objects.get(id=1), session=Session.objects.get(id=1))
+            Student.objects.create(user=instance, class_level=ClassLevel.objects.get(id=1))
     
 
 @receiver(post_save, sender=User)

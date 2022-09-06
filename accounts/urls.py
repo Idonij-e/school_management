@@ -30,7 +30,7 @@ urlpatterns = [
     path('<user_school_id>/select_session_save', views_admin.select_session_save, name="select_session_save"),
     path('<user_school_id>/add_fee_save', views_admin.add_fee_save, name="add_fee_save"),
 
-    path('<user_school_id>/profile', views_admin.edit_admin_profile, name="edit_admin_profile"),
+    path('<user_school_id>/edit_admin/', views_admin.edit_admin_profile, name="edit_admin_profile"),
     path('<user_school_id>/edit_staff/<staff_school_id>', views_admin.edit_staff, name="edit_staff"),
     path('<user_school_id>/edit_student/<student_school_id>', views_admin.edit_student, name="edit_student"),
     path('<user_school_id>/edit_class/<class_level_id>', views_admin.edit_class, name="edit_class"),
@@ -83,7 +83,7 @@ urlpatterns = [
 
 
 
-
+ 
 
 
 

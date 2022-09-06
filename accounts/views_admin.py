@@ -96,6 +96,7 @@ def profile(request, user_school_id):
         'user_first_name': request.session.get('user_first_name'),
         'user_last_name': request.session.get('user_last_name'),
         'user_other_names': request.session.get('user_other_names'),
+        'gender_data': User.gender_data
     }
     return render(request, 'admin_templates/admin_profile.html', context)
 
@@ -136,7 +137,7 @@ def edit_admin_profile(request, user_school_id):
             messages.error(request, "Failed to Update Profile")
 
         finally:
-            return redirect("/" + user_school_id + 'profile')    
+            return redirect("/" + user_school_id + '/profile')    
 
 
 
@@ -162,12 +163,15 @@ def manage_staff(request, user_school_id):
 
 
 def add_staff(request, user_school_id):
+    gender_data = User.gender_data
     context = {
         'user_first_name': request.session.get('user_first_name'),
         'user_last_name': request.session.get('user_last_name'),
         'user_other_names': request.session.get('user_other_names'),
-        "user_school_id": user_school_id
+        "user_school_id": user_school_id,
+        "gender_data": gender_data
     }
+
     return render(request, "admin_templates/add_staff_template.html", context)
 
 
@@ -219,13 +223,15 @@ def edit_staff(request, user_school_id, staff_school_id):
         'user_last_name': request.session.get('user_last_name'),
         'user_other_names': request.session.get('user_other_names'),
         "user_school_id": user_school_id,
-        "staff": staff
+        "staff": staff,
+        "gender_data": User.gender_data
     }
     return render(request, "admin_templates/edit_staff_template.html", context)
 
 
 
 def edit_staff_save(request, user_school_id):
+
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
 
@@ -331,19 +337,9 @@ def add_student_save(request, user_school_id):
             dob = form.cleaned_data['dob']
             class_level_id = form.cleaned_data['class_level_id'] if form.cleaned_data['class_level_id'] else request.session.get('class_level_id')
             gender = form.cleaned_data['gender']
-            username = generate_school_id()        
+            username = generate_school_id()     
+            profile_pic = form.cleaned_data['profile_pic'] 
 
-    #         # Getting Profile Pic first
-    #         # First Check whether the file is selected or not
-    #         # Upload only if file is selected
-    #         # if len(request.FILES) != 0:
-    #         #     profile_pic = request.FILES['profile_pic']
-    #         #     fs = FileSystemStorage()
-    #         #     filename = fs.save(profile_pic.name, profile_pic)
-    #         #     profile_pic_url = fs.url(filename)
-    #         # else:
-    #         #     profile_pic_url = None
-    #         profile_pic_url = ""
 
             try:
                 user = User.objects.create_user(username=username, 
@@ -356,6 +352,9 @@ def add_student_save(request, user_school_id):
                 phone_number=phone_number,
                 gender=gender)
 
+                if profile_pic != None or profile_pic != "":
+                    user.profile_pic = profile_pic
+
                 user.student.address = address
                 user.student.address = dob
                 user.student.phone_number = phone_number
@@ -367,7 +366,8 @@ def add_student_save(request, user_school_id):
 
                 messages.success(request, "Student Added Successfully!")
 
-            except:
+            except Exception as E:
+                print(E)
                 messages.error(request, "Failed to Add Student!")
             
             finally: 
@@ -429,6 +429,7 @@ def edit_student_save(request, user_school_id):
             class_level_id = form.cleaned_data['class_level_id']
             gender = form.cleaned_data['gender']
             phone_number = form.cleaned_data['phone_number']
+            profile_pic = form.cleaned_data['profile_pic']
 
             # Getting Profile Pic first
             # First Check whether the file is selected or not
@@ -450,7 +451,9 @@ def edit_student_save(request, user_school_id):
                 user.email = email
                 user.phone_number = phone_number
                 user.gender = gender
-                user.save()
+ 
+                if profile_pic != None or profile_pic != "":
+                    user.profile_pic = profile_pic
 
                 # Then Update Students Table
                 student_model = user.student
@@ -460,8 +463,7 @@ def edit_student_save(request, user_school_id):
                 class_level = ClassLevel.objects.get(id=class_level_id)
                 student_model.class_level = class_level
 
-                # if profile_pic_url != None:
-                #     student_model.profile_pic = profile_pic_url
+                user.save()    
 
                 student_model.save()
                 # Delete student_id SESSION after the data is updated
