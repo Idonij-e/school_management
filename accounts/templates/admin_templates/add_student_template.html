@@ -43,34 +43,42 @@
 
   
   {% block custom_js %}
-    {% comment %} Checking if email and username already exists or not usin Ajax {% endcomment %}
 
     <script>
         $('form').submit(function(e) {
 
-            $(':disabled').each(function(e) {
-                $(this).removeAttr('disabled');
-            })
+        phoneNumEle = document.getElementById('id_phone_number')
 
-            phoneNumEle = document.getElementById('id_phone_number')
+        const validatePhoneNum = (phoneNum) => {
+            if (phoneNum.length > 0 && !phoneNum.match(/^\d{11}$/)) {
+                $("<span id='phone_number_error' style='color: red; padding: 5px; font-weight: bold;'> Phone number is not valid </span>").insertAfter("#id_phone_number")
+                setInterval(() => {
+                    document.getElementById('phone_number_error').remove()
+                }, 3000)   
 
-            const validatePhoneNum = (phoneNum) => {
-                if (phoneNum.length > 0 && !phoneNum.match(/^\d{11}$/)) {
-                    $("<span id='phone_number_error' style='color: red; padding: 5px; font-weight: bold;'> Phone number is not valid </span>").insertAfter("#id_phone_number")
-                    setInterval(() => {
-                        document.getElementById('phone_number_error').remove()
-                    }, 3000)   
+                e.preventDefault()
+            }
+        } 
 
-                    e.preventDefault()
-                }
-            } 
-                  
-            validatePhoneNum(phoneNumEle.value)  
+        const checkImgSize = () => {
+            const imageEle = document.getElementById('id_profile_pic')
+            const maxSize = 1024 * 2 
+            const imageSize = imageEle.files[0].size / 1024
+            if (imageSize > maxSize) {
+                $("<span id='profile_pic_error' style='color: red; padding: 5px; font-weight: bold;'> File size should not exceed 2MB </span>").insertAfter("#id_profile_pic")
+                setInterval(() => {
+                    document.getElementById('profile_pic_error').remove()
+                }, 3000)  
+
+                e.preventDefault()
+            }
+        }
+            
+        validatePhoneNum(phoneNumEle.value) 
+        checkImgSize() 
+
         });
 
-        $( "#back_button" ).on( "click", function() {
-            window.history.back();
-        });
     </script>
-
-  {% endblock custom_js %}
+    
+{% endblock custom_js %}
