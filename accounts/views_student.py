@@ -7,6 +7,10 @@ from accounts.models import User, Administrator, Staff, Student, Session, ClassL
 from accounts.forms import AddStudentForm, EditStudentForm
 from http.client import HTTPResponse
 
+#for payment pdf generation
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+
 
 def home(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
@@ -133,8 +137,11 @@ def payment_history(request, user_school_id):
         }
     return render(request,"student_templates/payment_history.html", context)
 
-def payment_pdf(request, ref):
-    pass
+def payment_pdf(request, *args, **kwargs):
+    ref = kwargs.get('ref')
+    payment = get_object_or_404(Payment, ref)
+    template_path = 'student_templates/payment_pdf.html'
+    context = {'payment': payment}
 
 def student_view_result(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
