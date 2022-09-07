@@ -17,15 +17,27 @@
 {% load static %}
 
 <section class="content">
-        <div class="container-fluid">
+        <div class="container-fluid ">
 
-            {% if not class_level %}
-                <a class="btn btn-primary" href="{% url 'add_student' user_school_id %}" role="button">+ Add Student</a> <br/>&nbsp;
-            {% endif %}
+            <div class="d-flex justify-content-between">
+                <div>
+                    {% if not class_level %}
+                        <a class="btn btn-primary" href="{% url 'add_student' user_school_id %}" role="button">+ Add Student</a> <br/>&nbsp;
+                    {% endif %}
+    
+                    {% if class_level %}
+                        <a class="btn btn-primary" href="{% url 'manage_class_add_student' user_school_id class_level.class_level_name %}" role="button">+ Add Student to {{ class_level.class_level_name.upper }} Class</a> <br/>&nbsp;
+                    {% endif %}
+                </div>
+                
+                <div>
+                {% if class_level %}
+                    <a class="btn btn-primary" href="{% url 'student_records_doc' class_level.id %}" role="button">Download Student List</a> <br/>&nbsp;
+                {% endif %} 
+                </div>
 
-            {% if class_level %}
-                <a class="btn btn-primary" href="{% url 'manage_class_add_student' user_school_id class_level.class_level_name %}" role="button">+ Add Student to {{ class_level.class_level_name.upper }} Class</a> <br/>&nbsp;
-            {% endif %}
+            </div>
+
             
             
             {% if messages %}

@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 
 # Register your models here.
 
-from .models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment, CurrentSession, StudentResult
+from .models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment, StudentResult
 
 class CustomUserAdmin(UserAdmin):
     fieldsets = (
@@ -34,7 +34,6 @@ admin.site.register(ClassLevel)
 admin.site.register(Subject)
 admin.site.register(Fee)
 admin.site.register(Payment)
-admin.site.register(CurrentSession)
 admin.site.register(StudentResult)
 
 # admin.autodiscover()

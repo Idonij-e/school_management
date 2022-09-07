@@ -58,18 +58,10 @@ class Session(models.Model):
     id = models.AutoField(primary_key=True)
     session_start = models.PositiveIntegerField()
     session_end = models.PositiveIntegerField()
+    current_session = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return '{}/{} session'.format(self.session_start_year,self.session_end_year)
-
-
-class CurrentSession(models.Model):
-    session=models.ForeignKey(Session,on_delete=models.CASCADE)
-
-    def __str__(self) -> str:
-        return '{}/{} session'.format(self.session.session_start,self.session.session_end)
-
-
+        return '{}/{} session'.format(self.session_start ,self.session_end)
 
 
 class ClassLevel(models.Model):

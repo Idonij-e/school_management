@@ -11,10 +11,22 @@
 <section class="content">
         <div class="container-fluid">
 
-            <a class="btn btn-primary" href="{% url 'add_session' user_school_id%}" role="button">+ Add Session</a> <br/>&nbsp;
-            <br>
-            <a class="btn btn-secondary" href="{% url 'select_session' user_school_id%}" role="button">Select Current Session</a> <br/>&nbsp;
+            <div>
+                <a class="btn btn-primary" href="{% url 'add_session' user_school_id%}" role="button">+ Add Session</a> <br/>&nbsp;
+                <div>
+                    <div>
+                        {% for session in sessions %}
+                            {% if session.current_session == True %}
+                                <h4>{{ session }}</h4>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <a class="btn btn-secondary" href="{% url 'select_session' user_school_id%}" role="button">Select Current Session</a> <br/>&nbsp;
+                </div>
+    
+            </div>
 
+            
             {% if messages %}
                                 <div class="form-group">
                                 <div class="col-12">

@@ -37,3 +37,27 @@
       </section>
 
   {% endblock main_content %}
+
+  {% block custom_js %}
+
+    <script>
+        $('form').submit(function(e) {
+
+        phoneNumEle = document.getElementById('id_phone_number')
+
+        const validatePhoneNum = (phoneNum) => {
+            if (phoneNum.length > 0 && !phoneNum.match(/^\d{11}$/)) {
+                $("<span id='phone_number_error' style='color: red; padding: 5px; font-weight: bold;'> Phone number is not valid </span>").insertAfter("#id_phone_number")
+                setInterval(() => {
+                    document.getElementById('phone_number_error').remove()
+                }, 3000)   
+
+                e.preventDefault()
+            }
+        } 
+            
+        validatePhoneNum(phoneNumEle.value)  
+        });
+    </script>
+    
+{% endblock custom_js %}

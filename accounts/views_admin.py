@@ -2,7 +2,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
-from accounts.models import CurrentSession, User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee
+from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee
 from accounts.forms import AddStudentForm, EditStudentForm, FeeForm
 from accounts.utils import generate_school_id
 
@@ -809,7 +809,7 @@ def manage_session(request, user_school_id):
         'user_last_name': request.session.get('user_last_name'),
         'user_other_names': request.session.get('user_other_names'),
         "user_school_id": user_school_id,
-        "sessions": sessions
+        "sessions": sessions,
     }
     return render(request, "admin_templates/manage_session_template.html", context)
 
@@ -876,15 +876,17 @@ def select_session_save(request, user_school_id):
         session = Session.objects.get(id=session_id)
 
         try:
-            #try:
-            #    session_model = CurrentSession.objects.all()
-            #    session_model.delete()
-            #except:
-            #    session_model = None
-            
-            current_session = CurrentSession(session=session)
-            current_session.save()
-            messages.success(request, "Current Session Created Successfully!")
+            prev_current_session = Session.objects.get(current_session=True)
+            prev_current_session.current_session = False
+            session.current_session = True 
+            prev_current_session.save()
+            session.save()
+            messages.success(request, "Current Session updated Successfully!")
+
+        # except Session.DoesNotExist:
+        #     session.current_session = True 
+        #     session.save()
+        #     messages.success(request, "Current Session updated Successfully!")
 
         except:
             messages.error(request, "Failed to Create Current Session!")
@@ -1052,6 +1054,7 @@ def student_records_doc(request, course_id):
     for student in students:
         small_student=(student.user.school_id,student.user.first_name,student.user.last_name)
         student_list.append(small_student)
+
     table = doc.add_table(rows=1, cols=3)
     row = table.rows[0].cells
     row[0].text = 'SCHOOL ID'
@@ -1059,23 +1062,25 @@ def student_records_doc(request, course_id):
     row[1].text = 'FIRST NAME'
     row[2].text = 'LAST NAME'
     #row[3].text = 'LOGIN PASSWORD'
+    # print(student_list)
 
     for id, first, last in student_list:
-        row.table.add_row().cells
+        row = table.add_row().cells
         row[0].text = str(id)
         #row[1].text = str(course)
         row[1].text = str(first)
         row[2].text = str(last)
         #row[3].text = str(password)
 
-    f = StringIO()
-    doc.save(f)
-    length = f.tell()
-    f.seek(0)
-    response = HttpResponse(f.getvalue(),
-    content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    response['Content_Disposition'] = 'attachment; filename=download.docx'
-    response['Content_Length'] = length
+
+    # f = StringIO(doc)
+    # doc.save(f)
+    # length = f.tell()
+    # f.seek(0)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = 'attachment; filename={}.docx'.format(course.class_level_name)
+    doc.save(response)
+
     return response
 
     #method 2
