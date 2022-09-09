@@ -1,22 +1,169 @@
-<!doctype html>
-<html lang="en">
+<html>
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-    <title>Hello, world!</title>
+    
+    <title>Payment Receipt | PDF Download</title>
+    <style>
+      .row{
+        margin-top: 5%;
+        display: flex;
+        justify-content: space-between;
+      }
+      .header{
+      flex-basis: 95%;
+      text-align: left;
+      display: flex;
+      }
+      .school{
+        color:rgb(122, 158, 134);
+        font-size:30px
+      }
+      .data{
+        box-sizing: border-box;
+        width: 100%;
+        position: relative;
+        margin: 0 auto;
+        display: flex;
+      }
+      .base-data-img{
+        padding: 0 15px;
+        width: 20%;
+      }
+      .base-data-img img{
+        border-radius: 50%;
+      }
+      .base-data-field-name{
+        padding: 0 15px;
+        width: 30%;
+      }
+      .base-data-field-data{
+        padding: 0 15px;
+        width: 35%;
+      }
+      .qr{
+        padding: 0 15px;
+        width: 15%;
+      }
+      .payment-data-field-name{
+        padding: 0 15px;
+        width: 50%;
+      }
+      .payment-data-field-data{
+        padding: 0 15px;
+        width: 50%;
+      }
+      footer{
+        box-sizing: border-box;
+        width: 100%;
+        position: relative;
+      }
+      .footer-info{
+        margin: 0 auto;
+        display: flex;
+      }
+      .block-1{
+        padding: 0 15px;
+        width: 30%;
+      }
+      .block-2{
+        padding: 0 15px;
+        width: 70%;
+      }
+    </style>
   </head>
   <body>
-    <h1>Hello, world!</h1>
-
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <div class="row">
+      <div class="header">
+        <img src="static/assets/images/logo.jpg" height="100px">
+        <div class="school">
+          <b>SPRINGLEAF<br>INTERNATIONAL SCHOOL</b>
+          <br>
+          <p>EARLY LEARNING, SURE SUCCESS</p>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <center>
+      <h1> Online Payment Slip {{payment.ref}} </h1>
+    </center>
+    <p><b>Base Data</b></p>
+      <section class="data">
+        <div class="base-data-img">
+          {% if payment.student.user.profile_pic %}
+          <img src="{{payment.student.user.profile_pic.path}}" height="200px">
+          {% else %}
+          <img src="static/assets/images/user.jpg" height="200px">
+          {% endif %}
+        </div>
+        <div class="base-data-field-name">
+          <p>Name:</p><br>
+          <p>Student ID:</p><br>
+          <p>Current Class:</p><br>
+        </div>
+        <div class="base-data-field-data">
+          {% if payment.student.user.other_name %}
+          <p>{{payment.student.user.first_name}} {{payment.student.user.other_name}} {{payment..student.user.last_name}}</p><br>
+          {% else %}
+          <p>{{payment.student.user.first_name}} {{payment..student.user.last_name}}</p><br>
+          {% endif %}
+          <p>{{payment.student.user.school_id}}</p><br>
+          <p>{{payment.student.class_level.class_level_name}}</p><br>
+        </div>
+        <div class="qr">
+          <img src="https://chart.googleapis.com/chart?cht=qr&chs=500x500&chl=https://www.google.com" height="100px">
+        </div>
+      </section>
+      
+      <p><b>Payment Data</b></p>
+      <section class="data">
+        <div class="payment-data-field-name">
+          <p>Payment Category:</p>
+          <p>Payment Session:</p>
+          <p>Payment Status:</p>
+          <p>Payment Date:</p>
+          <p>Amount Authorized:</p>
+          <p>Activation Code:</p>
+          <p>Response Amount Approved:</p>
+          <p>Response Code:</p>
+          <p>Response Description:</p>
+          <p>Current Session Payment:</p>
+        </div>
+        <div class="payment-data-field-data">
+          <p>{{payment.fee_id.fee_name}}</p>
+          {% for session in sessions %}
+          {% if session.current_session == True %}
+          <p>{{session}}</p>
+          {% endif %}
+          {% endfor %}
+          <p>Paid</p>
+          <p>{{payment.date_created}}</p>
+          <p>{{payment.fee_id.fee_amount}}</p>
+          <p></p>
+          <p>{{payment.fee_id.fee_amount}}</p>
+          <p>01</p>
+          <p>Approved Successful</p>
+          <p>yes</p>
+        </div>
+      </section>
+      <br>
+      <img src="{{payment.student.user.profile_pic.path}}">
+      <br>
+      <img src="media/{{payment.student.user.profile_pic}}">
+      <br>
+      <img src="static/assets/images/user.jpg">
+    
+      <footer>
+        <hr>
+        <div class="footer-info">
+        <div class="block-1">
+            <p>Date: dd/mm/YYYY hh:mm:ss WAT</p>
+        </div>
+        <div class="block-2">
+            <p>{{payment.student.user.school_id}} - Online Payment Slip {{payment.ref}} - Page 1 of 1</p>
+        </div>
+      </div>
+      </footer>
+    
   </body>
 </html>

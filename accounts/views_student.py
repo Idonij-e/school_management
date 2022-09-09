@@ -140,8 +140,25 @@ def payment_history(request, user_school_id):
 def payment_pdf(request, *args, **kwargs):
     ref = kwargs.get('ref')
     payment = get_object_or_404(Payment, ref)
+    sessions = Session.objects.all()
     template_path = 'student_templates/payment_pdf.html'
-    context = {'payment': payment}
+    context = {'payment': payment,
+                'sessions': sessions
+    }
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="payment.pdf"'
+
+    template = get_template(template_path)
+    html = template.render(context)
+    
+    pisa_status = pisa.CreatePDF(
+        html, dest=response
+    )
+
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
 
 def student_view_result(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)

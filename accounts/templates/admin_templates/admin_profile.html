@@ -20,7 +20,7 @@
                     </div>
                     <!-- /.card-header -->
                     <!-- form start -->
-                    <form role="form" method="POST" action="{% url 'edit_admin_profile' user.school_id %}">
+                    <form role="form" method="POST" action="{% url 'edit_admin_profile' user.school_id %}" enctype="multipart/form-data">
                         {% csrf_token %}
 
                         
@@ -105,7 +105,10 @@
                                 {% endif %}   
                             </div>
             
-
+                            <div class="form-group">
+                                <label>Profile Picture </label>
+                                <input type="file" name="profile_pic" id="id_profile_pic">
+                            </div>
 
                         </div>
                         <!-- /.card-body -->
@@ -143,7 +146,23 @@
             }
         } 
             
-        validatePhoneNum(phoneNumEle.value)  
+        const checkImgSize = () => {
+            const imageEle = document.getElementById('id_profile_pic')
+            const maxSize = 1024 * 2 
+            const imageSize = imageEle.files[0].size / 1024
+            if (imageSize > maxSize) {
+                $("<span id='profile_pic_error' style='color: red; padding: 5px; font-weight: bold;'> File size should not exceed 2MB </span>").insertAfter("#id_profile_pic")
+                setInterval(() => {
+                    document.getElementById('profile_pic_error').remove()
+                }, 3000)  
+
+                e.preventDefault()
+            }
+        }
+            
+        validatePhoneNum(phoneNumEle.value) 
+        checkImgSize() 
+
         });
     </script>
     

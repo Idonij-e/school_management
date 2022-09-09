@@ -72,6 +72,7 @@ def edit_profile(request, user_school_id):
         email = request.POST.get('email')
         gender = request.POST.get('gender')
         phone_number = request.POST.get('phone_number')
+        profile_pic = request.FILES.get('profile_pic')
 
         try:
             user = User.objects.get(school_id=user_school_id)
@@ -84,6 +85,10 @@ def edit_profile(request, user_school_id):
 
             if password != None and password != "":
                 user.set_password(password)
+
+            if profile_pic != None or profile_pic != "":
+                user.profile_pic = profile_pic
+
             user.save()
 
             messages.success(request, "Profile Updated Successfully")
