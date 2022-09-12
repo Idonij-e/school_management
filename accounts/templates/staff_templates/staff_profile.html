@@ -20,7 +20,7 @@
                     </div>
                     <!-- /.card-header -->
                     <!-- form start -->
-                    <form role="form" method="POST" action="{% url 'edit_staff_profile' user_school_id %}">
+                    <form role="form" method="POST" action="{% url 'edit_staff_profile' user_school_id %}" enctype="multipart/form-data">
                         {% csrf_token %}
 
                         
@@ -67,8 +67,12 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Other Names </label>
-                                <input type="text" class="form-control" name="other_names" value="{{ user.other_names }}">
+                                <label>Other Names</label>
+                                {% if user.other_names %}
+                                    <input type="text" class="form-control" name="other_names" value="{{ user.other_names }}">
+                                {% else %}
+                                    <input type="text" class="form-control" name="other_names" value="">             
+                                {% endif %}   
                             </div>
 
                             <div class="form-group">
@@ -91,8 +95,17 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Phone Number </label>
-                                <input type="text" name="phone_number" class="form-control"  value="{{ user.phone_number }}"></input>
+                                <label>Phone Number</label>
+                                {% if user.phone_number %}
+                                    <input id="id_phone_number" type="text" class="form-control" name="phone_number" value="{{ user.phone_number }}">
+                                {% else %}
+                                    <input id="id_phone_number" type="text" class="form-control" name="phone_number" value="">             
+                                {% endif %}   
+                            </div>
+
+                            <div class="form-group">
+                                <label>Profile Picture </label>
+                                <input type="file" name="profile_pic" id="id_profile_pic">
                             </div>
 
                             
@@ -113,3 +126,43 @@
       </section>
 
   {% endblock main_content %}
+
+  {% block custom_js %}
+
+    <script>
+        $('form').submit(function(e) {
+
+        phoneNumEle = document.getElementById('id_phone_number')
+
+        const validatePhoneNum = (phoneNum) => {
+            if (phoneNum.length > 0 && !phoneNum.match(/^\d{11}$/)) {
+                $("<span id='phone_number_error' style='color: red; padding: 5px; font-weight: bold;'> Phone number is not valid </span>").insertAfter("#id_phone_number")
+                setInterval(() => {
+                    document.getElementById('phone_number_error').remove()
+                }, 3000)   
+
+                e.preventDefault()
+            }
+        } 
+            
+        const checkImgSize = () => {
+            const imageEle = document.getElementById('id_profile_pic')
+            const maxSize = 1024 * 2 
+            const imageSize = imageEle.files[0].size / 1024
+            if (imageSize > maxSize) {
+                $("<span id='profile_pic_error' style='color: red; padding: 5px; font-weight: bold;'> File size should not exceed 2MB </span>").insertAfter("#id_profile_pic")
+                setInterval(() => {
+                    document.getElementById('profile_pic_error').remove()
+                }, 3000)  
+
+                e.preventDefault()
+            }
+        }
+            
+        validatePhoneNum(phoneNumEle.value) 
+        checkImgSize() 
+
+        });
+    </script>
+    
+{% endblock custom_js %}

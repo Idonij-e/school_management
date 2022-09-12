@@ -117,6 +117,7 @@ def edit_admin_profile(request, user_school_id):
         phone_number = request.POST.get('phone_number')
         school_id = request.POST.get('school_id')
         gender = request.POST.get('gender')
+        profile_pic = request.FILES.get('profile_pic')
 
         try:
             user = User.objects.get(school_id=school_id)
@@ -129,6 +130,9 @@ def edit_admin_profile(request, user_school_id):
 
             if password != None and password != "":
                 user.set_password(password)
+
+            if profile_pic != None or profile_pic != "":
+                user.profile_pic = profile_pic
                 
             user.save()
             messages.success(request, "Profile Updated Successfully")
@@ -1093,3 +1097,69 @@ def student_records_doc(request, course_id):
     #response['Content_Disposition'] = 'attachment;filename=download.docx'
     #response['Content_Encoding'] = 'UTF-8'
     #return response
+
+
+
+#def class_search(request, user_school_id):   
+    #if request.method == "POST":
+    #    searched = request.POST['searched']
+    #    class_search = ClassLevel.objects.filter(class_level_name__contains=searched)
+    #    context = {
+    #    'user_first_name': request.session.get('user_first_name'),
+    #    'user_last_name': request.session.get('user_last_name'),
+    #    'user_other_names': request.session.get('user_other_names'),
+    #    "user_school_id": user_school_id,
+    #    'searched':searched,
+    #    'class_search':class_search
+    #}
+    #    return render(request,'admin_templates/class_search_template.html', context)
+    #else:
+    #    return render(request,"admin_templates/class_search_template.html",{})
+
+#def subject_search(request, user_school_id):
+ #   if request.method == "POST":
+ #       searched = request.POST['searched']
+ #       subject_search = Subject.objects.filter(subject_name__contains=searched)
+ #       context = {
+ #       'user_first_name': request.session.get('user_first_name'),
+ #       'user_last_name': request.session.get('user_last_name'),
+ #       'user_other_names': request.session.get('user_other_names'),
+ #       "user_school_id": user_school_id,
+ #       'searched':searched,
+ #       'subject_search':subject_search
+ #   }
+ #       return render(request,'admin_templates/subject_search_template.html', context)
+ #   else:
+ #       return render(request,"admin_templates/subject_search_template.html",{})
+
+#def staff_search(request, user_school_id):
+#    if request.method == "POST":
+#        searched = request.POST['searched']
+#        staff_search = Staff.objects.filter(user.first_name__contains=searched)
+#        context = {
+#        'user_first_name': request.session.get('user_first_name'),
+#        'user_last_name': request.session.get('user_last_name'),
+#        'user_other_names': request.session.get('user_other_names'),
+#        "user_school_id": user_school_id,
+#        'searched':searched,
+#        'staff_search':staff_search
+#    }
+#        return render(request,'admin_templates/staff_search_template.html', context)
+#    else:
+#        return render(request,"admin_templates/staff_search_template.html",{})
+
+#def student_search(request, user_school_id):
+#    if request.method == "POST":
+#        searched = request.POST['searched']
+#        student_search = Student.objects.filter(user.school_id__contains=searched, class_level.class_level_name__contains=searched)
+#        context = {
+#        'user_first_name': request.session.get('user_first_name'),
+#        'user_last_name': request.session.get('user_last_name'),
+#        'user_other_names': request.session.get('user_other_names'),
+#        "user_school_id": user_school_id,
+#        'searched':searched,
+#        'student_search':student_search
+#    }
+#        return render(request,'admin_templates/student_search_template.html', context)
+#    else:
+#        return render(request,"admin_templates/student_search_template.html",{})

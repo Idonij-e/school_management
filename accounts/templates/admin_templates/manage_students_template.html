@@ -73,14 +73,17 @@
                             <h3 class="card-title">{% if class_level %} {{ class_level.class_level_name }} {% endif %} Student Details</h3>
 
                             <div class="card-tools">
-                            <div class="input-group input-group-sm" style="width: 150px;">
-                                <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
-
-                                <div class="input-group-append">
-                                <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                                <div class="input-group input-group-sm" style="width: 150px;">
+                                  <form action="" method="post">
+                                    {% csrf_token %}
+                                  <input type="search" aria-label="Search" name="searched" class="form-control float-right" placeholder="Search Staff by First Name">
+              
+                                  <div class="input-group-append">
+                                    <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                                  </div>
+                                  </form>
                                 </div>
-                            </div>
-                            </div>
+                              </div>
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body table-responsive p-0">

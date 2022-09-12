@@ -92,8 +92,8 @@ urlpatterns = [
     path('<user_school_id>/student_profile', views_student.profile, name="student_profile"),
     path('<user_school_id>/edit_student_profile', views_student.edit_profile, name="edit_student_profile"),
     path('<user_school_id>/make_payment/<custom_id>', views_student.initiate_payment, name="initiate_payment"),
-    path('<user_school_id>/payment_history', views_student.payment_history, name="payment_history"),
-    path('payment_pdf/<str:ref>', views_student.payment_pdf, name="payment_pdf"),
     path('<str:ref>/', views_student.verify_payment, name="verify_payment")
+    path('<user_school_id>/payment_history', views_student.payment_history, name="payment_history"),
+    path('payment_pdf/<str:ref>', views_student.payment_pdf, name="payment_pdf")
 
 ]
