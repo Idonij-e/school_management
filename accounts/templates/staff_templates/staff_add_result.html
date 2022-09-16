@@ -1,136 +1,346 @@
-{% extends 'staff_templates/base_template.html' %}
-{% block page_title %}
-Add Results
-{% endblock page_title %}
-{% block main_content %}
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-                    <div class="row">
-              <div class="col-md-12">
-            <!-- general form elements -->
-             <form action="{% url 'save_student_result' %}" method="post">
-                 {% csrf_token %}
-            <div class="card card-primary">
-              <div class="card-header">
-                <h3 class="card-title">Add Results</h3>
-              </div>
-              <!-- /.card-header -->
-              <!-- form start -->
-                
-                  {% comment %} Display Messages {% endcomment %}
-                  {% if messages %}
-                  <div class="form-group">
-                  <div class="col-12">
-                      {% for message in messages %}
-                      {% if message.tags == "error" %}
-                          <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                          {{ message }}
-                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                              <span aria-hidden="true">&times;</span>
-                          </button>
-                          </div>
-                      {% elif message.tags == "success" %}
-                          <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                          {{ message }}
-                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                              <span aria-hidden="true">&times;</span>
-                          </button>
-                          </div>
-                      {% endif %}
-                      {% endfor %}
-                  </div>
-                
-                  {% endif %}
-                  
-                  <div class="card-body">
-                   <div class="form-group">
-                    <label>Subject </label>
-                    <select class="form-control" name="subject" id="subject">
-                        {% for subject in subjects %}
-                          <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
-                        {% endfor %}
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Session Year</label>
-                    <select class="form-control" name="session_year" id="session_year">
-                        {% for session_year in session_years %}
-                          <option value="{{ session_year.id }}">{{ session_year.session_start }}/{{ session_year.session_end }} session</option>
-                        {% endfor %}
-                    </select>
-                  </div>
-                  
-                    \\
-                    </div>
+{% extends 'staff_templates/base_template.html' %} {% block page_title %} Add
+Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
+{% load static %}
 
-                </div>
-                <!-- /.card-body -->
-
-                <div class="card-footer">
-                  <button type="button" class="btn btn-primary btn-block" id="fetch_student">Fetch Student</button>
-                </div>
-                <div id="student_data" class="card-footer">
-
-                </div>
-            </div>
-             </form>
-            <!-- /.card -->
-
-
-
-          </div>
-          </div>
-
+<section class="content">
+  <div class="container-fluid" id="messages">
+    {% if messages %}
+    <div class="form-group">
+      <div class="col-12">
+        {% for message in messages %} {% if message.tags == "error" %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+          style="margin-top: 10px"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="close"
+            data-dismiss="alert"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% elif message.tags == "success" %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+          style="margin-top: 10px"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="close"
+            data-dismiss="alert"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% endif %} {% endfor %}
       </div>
-    </section>
-    <!-- /.content -->
-{% endblock main_content %}
-{% block custom_js %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="mb-5">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="assessment_type"
+                >Assessment Type</label
+              >
+            </div>
+            <select
+              class="custom-select"
+              name="assessment_type"
+              id="assessment_type"
+            >
+              {% for assessment in assessment_choices %}
+              <option value="{{ assessment.0 }}">
+                {{ assessment.1.title }}
+              </option>
+              {% endfor %}
+            </select>
+
+            <div class="input-group-prepend ml-3">
+              <span class="input-group-text">Assessment</span>
+            </div>
+            <input
+              type="text"
+              aria-label="assessment name"
+              id="assessment_desc"
+              class="form-control"
+            />
+
+            <a
+              class="btn btn-primary ml-3"
+              href="#"
+              id="add_assessment_btn"
+              role="button"
+            >
+              Add Assessment
+            </a>
+            <br />&nbsp;
+          </div>
+
+          <div id="new_custom_error"></div>
+        </div>
+
+        <!-- general form elements -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-tools">
+              <div class="input-group input-group-sm" style="width: 150px">
+                <form action="" method="post">
+                  {% csrf_token %}
+
+                  <div class="input-group-append">
+                    <input
+                      type="search"
+                      aria-label="Search"
+                      name="searched"
+                      class="form-control float-right"
+                    />
+
+                    <button type="submit" class="btn btn-default">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body table-responsive p-0">
+            <form
+              action="{% url 'save_student_result' user_school_id %}"
+              method="POST"
+            >
+              {% csrf_token %}
+              <table class="table table-hover text-nowrap" name="table">
+                <thead>
+                  <tr>
+                    <th>Student ID</th>
+                    <th>Student First Name</th>
+                    <th>Student Last Name</th>
+                    <th>Student Other Names</th>
+                    <!-- <th>Action(s)</th> -->
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for student in students %}
+                  <tr>
+                    <td>{{ student.user.school_id }}</td>
+                    <td>{{ student.user.first_name }}</td>
+                    <td>{{ student.user.last_name }}</td>
+                    <td>{{ student.user.other_names }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <button type="submit" class="btn btn-default" id="save_btn">
+                Save
+              </button>
+            </form>
+            <div id="results"></div> <!-- errors go here -->
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+      </div>
+    </div>
+  </div>
+  <!-- /.container-fluid -->
+</section>
+
+{% endblock main_content %} {% block custom_js %}
+
 <script>
-    $(document).ready(function(){
-        $("#fetch_student").click(function(){
-            var subject=$("#subject").val()
-            var session_year=$("#session_year").val()
+  // csrf token setup
+  $(function () {
+    // This function gets cookie with a given name
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie != "") {
+        let cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          let cookie = jQuery.trim(cookies[i]);
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) == name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    let csrftoken = getCookie("csrftoken");
 
-            $.ajax({
-                url:'{% url 'get_students' %}',
-                type:'POST',
-                data:{subject:subject,session_year:session_year},
-            })
-            .done(function(response){
-                var json_data=JSON.parse(response);
-                console.log(json_data)
-                var div_data="<div class='form-group'><label>Student List</label><select class='student_list form-control' name='student_list'>";
-                for(key in json_data)
-                {
-                    div_data+="<option value='"+json_data[key]['id']+"'>ID : "+json_data[key]['id']+" : "+json_data[key]['name']+"</option>";
-                }
-                div_data+="</select>";
-                div_data+="</div>";
-                div_data+="<div class='form-group'><div class='row'>"
-                div_data+="<div class='col-lg-6'>";
-                div_data+="<label> 1st Test Marks : </label><input type='text' name='test_one_marks' class='form-control' placeholder='Assignment Marks'>";
-                div_data+="</div>";
-                div_data+="<div class='col-lg-6'>";
-                div_data+="<label> 2nd Test Marks : </label><input type='text' name='test_two_marks' class='form-control' placeholder='Assignment Marks'>";
-                div_data+="</div>";
-                div_data+="<div class='col-lg-6'>";
-                div_data+="<label> Exam Marks : </label><input type='text' name='exam_marks' class='form-control' placeholder='Exam Marks'>";
-                div_data+="</div>"
-                div_data+="</div></div>";
+    /*
+    The functions below will create a header with csrftoken
+    */
 
-                div_data+="<div class='form-group'>";
-                div_data+="<button id='save_attendance' class='btn btn-success btn-block' type='submit'>Save Result</button>";
-                div_data+="</div>";
+    function csrfSafeMethod(method) {
+      // these HTTP methods do not require CSRF protection
+      return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
+    }
+    function sameOrigin(url) {
+      // test that a given url is a same-origin URL
+      // url could be relative or scheme relative or absolute
+      let host = document.location.host; // host + port
+      let protocol = document.location.protocol;
+      let sr_origin = "//" + host;
+      let origin = protocol + sr_origin;
+      // Allow absolute or scheme relative URLs to same origin
+      return (
+        url == origin ||
+        url.slice(0, origin.length + 1) == origin + "/" ||
+        url == sr_origin ||
+        url.slice(0, sr_origin.length + 1) == sr_origin + "/" ||
+        // or any other URL that isn't scheme relative or absolute i.e relative.
+        !/^(\/\/|http:|https:).*/.test(url)
+      );
+    }
 
-                $("#student_data").html(div_data);
+    $.ajaxSetup({
+      beforeSend: function (xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+          // Send the token to same-origin, relative URLs only.
+          // Send the token only if the method warrants CSRF protection
+          // Using the CSRFToken value acquired earlier
+          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+      },
+    });
+  });
 
-            })
-            .fail(function(){
-                alert("Error in Fetching Student")
-            });
-        });
-    })
+  $("#add_assessment_btn").click((e) => {
+    const thEl = document.createElement("th");
+    thEl.innerText = document.getElementById("assessment_desc").value;
+    const theadTrEl = document
+      .getElementsByTagName("thead")[0]
+      .getElementsByTagName("tr")[0];
+    theadTrEl.appendChild(thEl);
+
+    // get rows in table body element
+    const tbodyTrEl = document
+      .getElementsByTagName("tbody")[0]
+      .getElementsByTagName("tr");
+
+    // loop through rows
+    for (let i of Object.keys(tbodyTrEl)) {
+      // create td element
+      const tdEl = document.createElement("td");
+      tdEl.setAttribute("name", "assessmentInfo");
+
+      // create input element for score
+      const inputEl = document.createElement("input");
+      inputEl.setAttribute("maxlength", 7);
+      inputEl.setAttribute("value", 0);
+      inputEl.style.width = "8ch";
+      inputEl.onkeyup = checkScoreIsNum
+
+      // create input element for assessment type
+      const assessementTypeEl = document.createElement("input");
+      assessementTypeEl.value =
+        document.getElementById("assessment_type").value;
+      assessementTypeEl.setAttribute("name", "assessment_type");
+      assessementTypeEl.setAttribute("hidden", true);
+
+      // create input element for assessment description
+      const assessementDescEl = document.createElement("input");
+      assessementDescEl.value =
+        document.getElementById("assessment_desc").value;
+      assessementDescEl.setAttribute("name", "assessment_desc");
+      assessementDescEl.setAttribute("hidden", true);
+
+      tdEl.appendChild(assessementTypeEl);
+      tdEl.appendChild(assessementDescEl);
+      tdEl.appendChild(inputEl);
+      tbodyTrEl[i].appendChild(tdEl);
+    }
+  });
+
+  $("#save_btn").click((e) => {
+    e.preventDefault();
+    save_assessment();
+  });
+
+  function save_assessment() {
+    $.ajax({
+      url: "{% url 'save_student_result' user_school_id %}", // the endpoint
+      type: "POST", // http method
+      data: {  'data': get_assessments() }, // data sent with the post request
+
+
+      // handle a successful response
+      success: function (res) {
+        window.location.replace(JSON.parse(res).redirectUrl)
+      },
+
+      // handle a non-successful response
+      error: function (xhr, res, err) {
+        window.location.replace(res.redirectUrl)
+      },
+    });
+
+    // return assessment for each student from table
+    function get_assessments() {
+      // get rows in table body
+      const tbodyTrEl = document
+        .getElementsByTagName("tbody")[0]
+        .getElementsByTagName("tr");
+
+      assessments = [];
+      // loop through rows and extract relevant information
+      for (let i of Object.keys(tbodyTrEl)) {
+        const student_school_id =
+          tbodyTrEl[i].getElementsByTagName("td")[0].innerText;
+        const infoInputsEl = tbodyTrEl[i].getElementsByTagName("td");
+
+        // loop through info input incase multiple assessments are added for a student
+        for (let u of Object.keys(infoInputsEl).slice(4)) {
+          const assessment_type =
+            infoInputsEl[u].getElementsByTagName("input")[0].value.trim();
+          const assessment_desc =
+            infoInputsEl[u].getElementsByTagName("input")[1].value.trim();
+          const assessment_score =
+            infoInputsEl[u].getElementsByTagName("input")[2].value.trim();
+
+          if (isNaN(assessment_score) || assessment_score === '') {
+            throw new Error('an input field for score contains non-numerical value(s)')
+          }
+
+          assessments.push({
+            student_school_id: student_school_id,
+            assessment_score: assessment_score,
+            assessment_type: assessment_type,
+            assessment_desc: assessment_desc,
+          });
+        }
+      }
+      
+      return JSON.stringify({ 'subject_id': {{ subject.id }}, 'assessments': assessments})
+    }
+  }
+
+
+  function checkScoreIsNum(e) {
+    const trimmedNum = e.target.value.trim()
+    if (isNaN(trimmedNum) || trimmedNum === '') {
+      e.target.setCustomValidity('Field accepts only numbers')
+      e.target.reportValidity()
+    }
+
+  }
+
+  function showMessage(res) {
+    
+  }
 </script>
+
 {% endblock custom_js %}

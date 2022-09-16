@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.conf import settings
 
-from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment, StudentResult
+from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment, StudentAssessment
 from accounts.forms import AddStudentForm, EditStudentForm
 from http.client import HTTPResponse
 

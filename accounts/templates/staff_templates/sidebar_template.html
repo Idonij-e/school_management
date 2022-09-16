@@ -61,6 +61,16 @@
               </a>
             </li>
 
+            <li class="nav-item">
+              {% url 'staff_subjects' user_school_id as staff_subjects %}
+              <a href="{{ staff_subjects }}" class="nav-link {% if staff_subjects in request.path %} active {% endif %} {% if request.path == edit_class %} active {% endif %}">
+                <i class="nav-icon fas fa-book"></i>
+                <p>
+                  Subjects
+                </p>
+              </a>
+            </li>
+              
           </ul>
         </nav>
         <!-- /.sidebar-menu -->

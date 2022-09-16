@@ -150,14 +150,30 @@ class Payment(models.Model):
         return False
 
 
-class StudentResult(models.Model):
+# class StudentResult(models.Model):
+#     id=models.AutoField(primary_key=True)
+#     student=models.ForeignKey(Student,on_delete=models.CASCADE)
+#     subject=models.ForeignKey(Subject,on_delete=models.CASCADE)
+#     subject_exam_marks=models.FloatField(default=0)
+#     subject_test_marks=models.FloatField(default=0)
+#     #subject_test_two_marks=models.FloatField(default=0)
+#     #subject_assignment_marks=models.FloatField(default=0)
+#     created_at=models.DateField(auto_now_add=True)
+#     updated_at=models.DateField(auto_now_add=True)
+
+class StudentAssessment(models.Model):
     id=models.AutoField(primary_key=True)
     student=models.ForeignKey(Student,on_delete=models.CASCADE)
     subject=models.ForeignKey(Subject,on_delete=models.CASCADE)
-    subject_exam_marks=models.FloatField(default=0)
-    subject_test_marks=models.FloatField(default=0)
-    #subject_test_two_marks=models.FloatField(default=0)
-    #subject_assignment_marks=models.FloatField(default=0)
+    assessment_choices = (
+        (1, 'assignment'),
+        (2, 'test'),
+        (3, 'examination'),
+        (4, 'project'),
+    )
+    assessment_type = models.CharField(choices=assessment_choices, default=1, max_length=120)
+    assessment_desc = models.CharField(max_length=125, null=True, blank=True)
+    score = models.FloatField(default=0)
     created_at=models.DateField(auto_now_add=True)
     updated_at=models.DateField(auto_now_add=True)
 
