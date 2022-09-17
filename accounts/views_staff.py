@@ -216,6 +216,7 @@ def view_subjects(request, user_school_id):
 
 def staff_add_result(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
+    assessments = StudentAssessment.objects.filter(subject=subject_id)
     students = subject.class_level.student_set.all()
     context = {
         "user_school_id": user_school_id,
@@ -225,7 +226,9 @@ def staff_add_result(request, user_school_id, subject_id):
         "subject": subject,
         "students": students,
         "assessment_choices": StudentAssessment.assessment_choices,
+        'assessments': assessments,
     }
+
     return render(request, "staff_templates/staff_add_result.html", context)
 
 
@@ -254,7 +257,7 @@ def save_student_result(request, user_school_id):
                     assessment_desc=assessment_desc,
                     score=score,
                 )
-
+                
         messages.success(request, "Assessments added successfully")
 
     except:

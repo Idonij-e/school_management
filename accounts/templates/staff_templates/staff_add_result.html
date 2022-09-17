@@ -1,6 +1,9 @@
-{% extends 'staff_templates/base_template.html' %} {% block page_title %} Add
-Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
-{% load static %}
+{% extends 'staff_templates/base_template.html' %}
+ {% load custom_filters_tags %} 
+ {% block page_title %} Add Result | {{ user_school_id }} 
+ {% endblock page_title %} 
+ {% block main_content %} 
+ {% load static %}
 
 <section class="content">
   <div class="container-fluid" id="messages">
@@ -127,7 +130,9 @@ Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
                     <th>Student First Name</th>
                     <th>Student Last Name</th>
                     <th>Student Other Names</th>
-                    <!-- <th>Action(s)</th> -->
+                    {% for assessment_desc in assessments|unique:"assessment_desc" %}
+                    <th>{{ assessment_desc }}</th>
+                    {% endfor %}
                   </tr>
                 </thead>
 
@@ -138,6 +143,9 @@ Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
                     <td>{{ student.user.first_name }}</td>
                     <td>{{ student.user.last_name }}</td>
                     <td>{{ student.user.other_names }}</td>
+                    {% for assessment in student|student_assessments_filter:subject.id %}
+                    <td>{{ assessment.score }}</td>
+                    {% endfor %}
                   </tr>
                   {% endfor %}
                 </tbody>
@@ -146,7 +154,8 @@ Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
                 Save
               </button>
             </form>
-            <div id="results"></div> <!-- errors go here -->
+            <div id="results"></div>
+            <!-- errors go here -->
           </div>
           <!-- /.card-body -->
         </div>
@@ -235,10 +244,10 @@ Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
     for (let i of Object.keys(tbodyTrEl)) {
       // create td element
       const tdEl = document.createElement("td");
-      tdEl.setAttribute("name", "assessmentInfo");
 
       // create input element for score
       const inputEl = document.createElement("input");
+      inputEl.setAttribute("name", "score");
       inputEl.setAttribute("maxlength", 7);
       inputEl.setAttribute("value", 0);
       inputEl.style.width = "8ch";
@@ -300,30 +309,38 @@ Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
       for (let i of Object.keys(tbodyTrEl)) {
         const student_school_id =
           tbodyTrEl[i].getElementsByTagName("td")[0].innerText;
-        const infoInputsEl = tbodyTrEl[i].getElementsByTagName("td");
+        const tdEls = tbodyTrEl[i].getElementsByTagName("td");
 
-        // loop through info input incase multiple assessments are added for a student
-        for (let u of Object.keys(infoInputsEl).slice(4)) {
-          const assessment_type =
-            infoInputsEl[u].getElementsByTagName("input")[0].value.trim();
-          const assessment_desc =
-            infoInputsEl[u].getElementsByTagName("input")[1].value.trim();
-          const assessment_score =
-            infoInputsEl[u].getElementsByTagName("input")[2].value.trim();
 
-          if (isNaN(assessment_score) || assessment_score === '') {
-            throw new Error('an input field for score contains non-numerical value(s)')
+
+
+        // loop through td elements
+        for (let u of Object.keys(tdEls)) {
+          const inputEls = tdEls[u].getElementsByTagName('input')
+
+          if (inputEls.length > 0) {
+            const assessment_type =
+            inputEls[0].value.trim();
+            const assessment_desc =
+            inputEls[1].value.trim();
+            const assessment_score =
+            inputEls[2].value.trim();
+
+            if (isNaN(assessment_score) || assessment_score === '') {
+              throw new Error('an input field for score contains non-numerical value(s)')
+            }
+
+            assessments.push({
+              student_school_id: student_school_id,
+              assessment_score: assessment_score,
+              assessment_type: assessment_type,
+              assessment_desc: assessment_desc,
+            });
           }
 
-          assessments.push({
-            student_school_id: student_school_id,
-            assessment_score: assessment_score,
-            assessment_type: assessment_type,
-            assessment_desc: assessment_desc,
-          });
         }
       }
-      
+
       return JSON.stringify({ 'subject_id': {{ subject.id }}, 'assessments': assessments})
     }
   }
@@ -339,7 +356,7 @@ Result | {{ user_school_id }} {% endblock page_title %} {% block main_content %}
   }
 
   function showMessage(res) {
-    
+
   }
 </script>
 
