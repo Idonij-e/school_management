@@ -5,11 +5,13 @@ register = template.Library()
 @register.filter 
 def unique(array, obj_key=None):
     result = []
+    seen = []
 
     if (obj_key):
         for ele in array:
-            if getattr(ele, obj_key) not in result:
-                result.append(getattr(ele, obj_key))
+            if getattr(ele, obj_key) not in seen:
+                seen.append(getattr(ele, obj_key))
+                result.append(ele)
         return result
 
     for ele in array:

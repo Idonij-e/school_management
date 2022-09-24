@@ -11,7 +11,7 @@ activate your virtual environment
 run command
 `cd school_management`
 
-run command
+wait for packages to install then run command
 `pip install -r requirements.txt`
 
 after packages have installed run command 

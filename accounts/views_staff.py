@@ -239,28 +239,52 @@ def save_student_result(request, user_school_id):
 
     data = json.loads(request.POST["data"])
     subject = Subject.objects.get(id=data.get("subject_id"))
-    assessments = data.get("assessments")
+    deleted_assessments = data.get('deleted_assessments')
+    new_assessments = data.get('new_assessments')
+    edited_assessments = data.get('edited_assessments')
+    msg = []
 
     try:
         with transaction.atomic():
-            for assessment in assessments:
-                student = User.objects.get(
-                    school_id=assessment.get("student_school_id")
-                ).student
-                assessment_type = int(assessment.get("assessment_type"))
-                assessment_desc = assessment.get("assessment_desc")
-                score = assessment.get("assessment_score")
-                StudentAssessment.objects.create(
-                    student=student,
-                    subject=subject,
-                    assessment_type=assessment_type,
-                    assessment_desc=assessment_desc,
-                    score=score,
-                )
-                
-        messages.success(request, "Assessments added successfully")
 
-    except:
+            # handle deleted assessments 
+            if deleted_assessments:
+                for assessment in deleted_assessments:
+                    assessment_obj_list = StudentAssessment.objects.filter(assessment_desc=assessment).delete()
+                msg.append('deleted')
+                
+            # handle new assessments
+            if new_assessments:
+                for assessment in new_assessments:
+                    student = User.objects.get(
+                        school_id=assessment.get("student_school_id")
+                    ).student
+                    assessment_type = int(assessment.get("assessment_type"))
+                    assessment_desc = assessment.get("assessment_desc")
+                    score = float(assessment.get("assessment_score"))
+
+                    StudentAssessment.objects.create(
+                        student=student,
+                        subject=subject,
+                        assessment_type=assessment_type,
+                        assessment_desc=assessment_desc,
+                        score=score,
+                    )
+                msg.append('added')
+
+            # handle edited assessments
+            if edited_assessments:
+                for assessment in edited_assessments:
+                    assessment_obj = StudentAssessment.objects.get(id=assessment.get('assessment_id'))
+                    assessment_obj.assessment_desc = assessment.get('assessment_desc')
+                    assessment_obj.score = assessment.get('assessment_score')
+                    assessment_obj.save()
+                msg.append('edited')
+
+        messages.success(request, "Assessments {} successfully".format(' and '.join(msg)))
+
+    except Exception as e:
+        print(e)
         messages.error(request, "Failed to add assessments")
 
     finally:

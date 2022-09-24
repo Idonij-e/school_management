@@ -77,7 +77,6 @@ urlpatterns = [
     path('get_students', views_staff.get_students, name="get_students"),
     path('<user_school_id>/<subject_id>/staff_add_result', views_staff.staff_add_result, name="staff_add_result"),
     path('<user_school_id>/save_student_result', views_staff.save_student_result, name="save_student_result"),
-    path('<user_school_id>/edit_student_result',EditResultViewClass.as_view(), name="edit_student_result"),
     path('fetch_result_student',views_staff.fetch_result_student, name="fetch_result_student"),
     path('<user_school_id>/subjects', views_staff.view_subjects, name="staff_subjects"),
 

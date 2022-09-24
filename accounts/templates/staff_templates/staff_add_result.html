@@ -130,8 +130,16 @@
                     <th>Student First Name</th>
                     <th>Student Last Name</th>
                     <th>Student Other Names</th>
-                    {% for assessment_desc in assessments|unique:"assessment_desc" %}
-                    <th>{{ assessment_desc }}</th>
+                    {% for assessment in assessments|unique:"assessment_desc" %}
+                    <th>
+                      <span class="assessmentTitle" data-assessment-title="{{ assessment.assessment_desc }}">
+                        {{ assessment.assessment_desc }} 
+                      </span>
+                      <span>
+                        <i class="fas fa-pen editBtn text-primary ml-1" ></i>
+                        <i class="fas fa-trash deleteBtn text-danger ml-1"></i>
+                      </span>
+                    </th>
                     {% endfor %}
                   </tr>
                 </thead>
@@ -144,7 +152,12 @@
                     <td>{{ student.user.last_name }}</td>
                     <td>{{ student.user.other_names }}</td>
                     {% for assessment in student|student_assessments_filter:subject.id %}
-                    <td>{{ assessment.score }}</td>
+                    <td class="text-center">
+                      <span data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
+                        {{ assessment.score }}
+                      </span>
+                     
+                    </td>
                     {% endfor %}
                   </tr>
                   {% endfor %}
@@ -166,9 +179,206 @@
   <!-- /.container-fluid -->
 </section>
 
+<style>
+  i:hover {
+    cursor: pointer;
+  }
+
+</style>
+
 {% endblock main_content %} {% block custom_js %}
 
 <script>
+
+  // add new, edited, and deleted data attributes to table elements
+  const tempTable = $('table')[0]
+  tempTable.dataset.newAssessments = JSON.stringify([])
+  tempTable.dataset.editedAssessments = JSON.stringify([])
+  tempTable.dataset.deletedAssessments = JSON.stringify([])
+
+
+  /*
+  on click of add assessment button
+  adds span element in thead>tr with innerHtml text of #assessment_desc value
+    add assessment-title data attribute to span element
+  get rows in tbody>tr
+    loop through rows
+    create input element
+    add school-id, assessment-title, assessment-type data attributes to input elemnent
+  */
+  $("#add_assessment_btn").click((e) => {
+
+    const assessmentTypeInput = document.getElementById('assessment_desc')
+    checkEmptyOrUnique(assessmentTypeInput)
+
+
+    // create title th element
+    const titleEl = document.createElement("th");
+    // create text span element
+    const textSpan = document.createElement('span')
+    textSpan.setAttribute('class', 'assessmentTitle')
+    textSpan.dataset.assessmentTitle = document.getElementById('assessment_desc').value.trim()
+    // create icons span element
+    const iconSpan = document.createElement('span')
+    // delete icon element
+    const deleteIconBtn = `<i class="fas fa-trash deleteBtn text-danger ml-2"></i>`
+
+    // append text element and icon element to title element
+    $(iconSpan).append(deleteIconBtn)
+    textSpan.innerText = document.getElementById("assessment_desc").value.trim()
+    titleEl.appendChild(textSpan)
+    titleEl.appendChild(iconSpan)
+
+    // append title element to thead element
+    const theadTrEl = document
+      .getElementsByTagName("thead")[0]
+      .getElementsByTagName("tr")[0];
+    theadTrEl.appendChild(titleEl);
+
+    // get rows in table body element tbody>tr
+    const tbodyTrEl = document
+      .getElementsByTagName("tbody")[0]
+      .getElementsByTagName("tr");
+
+    // loop through rows
+    for (let i of Object.keys(tbodyTrEl)) {
+      // create td element
+      const tdEl = document.createElement("td");
+      tdEl.classList.add('text-center')
+
+      // create input element for score
+      const inputEl = document.createElement("input");
+      inputEl.setAttribute("name", "score");
+      inputEl.setAttribute("maxlength", 7);
+      inputEl.setAttribute("value", 0);
+      inputEl.style.width = "8ch";
+      inputEl.dataset.schoolId = tbodyTrEl[i].cells[0].innerText.trim()
+      inputEl.dataset.assessmentType = document.getElementById("assessment_type").value.trim();
+      inputEl.dataset.assessmentTitle = document.getElementById("assessment_desc").value.trim();
+      $(inputEl).keyup((d) => checkScoreIsNum(d.target))
+
+      tdEl.appendChild(inputEl);
+      tbodyTrEl[i].appendChild(tdEl);
+    }
+
+    // get table element
+    const tableEl = $('table')[0]
+    // get new-assessments data attribute value
+    // push new assessment title to array
+    let newAssessmentArray = JSON.parse(tableEl.dataset.newAssessments)
+    newAssessmentArray.push(textSpan.innerText.trim())
+    // set new-assessments data attribute to newAssessmentArray
+    tableEl.dataset.newAssessments = JSON.stringify(newAssessmentArray)
+  });
+
+
+
+  /*
+    on click for edit button
+    replaces span of thead>tr>th element with input element
+    assigns innerText of thead>tr>th element to new input element
+    loops through respective column elements replacing span tag with input tag assign their innerText 
+      to value attribute
+    adds assessment-title data attributes to respective elements enabling easy quering for a group of
+      assessments
+    adds assessment-id data attributes to respective elements
+    adds edited assessment title to edited-assessments data attribute of table tag
+  */
+  $('.editBtn').on('click', function(e) {
+
+    // get title element
+    const titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
+    const assessmentTitle = titleEl.dataset.assessmentTitle
+
+    // create title input element
+    const inputEl = document.createElement('input')
+    inputEl.dataset.assessmentTitle = assessmentTitle
+    $(inputEl).attr('value', titleEl.innerText.trim())
+    $(inputEl).attr('class', "assessmentTitle")
+    $(inputEl).keyup((d) => checkEmptyOrUnique(d.target))
+
+    // replace title element span with input element
+    $(titleEl).replaceWith(inputEl)
+
+    // remove edit button element
+    $(e.target).remove()
+
+    const column = $(`[data-assessment-title="${assessmentTitle}"]`)
+    for (let _=1; _<column.length; _++) {
+
+      // create score input element
+      const inputEl = document.createElement('input')
+      inputEl.style.width = '8ch'
+      inputEl.value = column[_].innerText.trim()
+      inputEl.dataset.assessmentId = column[_].dataset.assessmentId
+      inputEl.dataset.assessmentTitle = assessmentTitle
+      $(inputEl).keyup((d) => checkScoreIsNum(d.target))
+
+      // replace score element with input element
+      $(column[_]).replaceWith(inputEl)
+    }
+
+    // get table element
+    const tableEl = $('table')[0]
+    // get edited data attribute value
+    // push newly edited assessment title to array
+    let editedAssessmentArray = JSON.parse(tableEl.dataset.editedAssessments)
+    editedAssessmentArray.push(titleEl.innerText.trim())
+    // set edited-assessment data attribute to editedAssessmentArray
+    tableEl.dataset.editedAssessments = JSON.stringify(editedAssessmentArray)
+  })
+
+
+  
+  /*
+  on click for delete button
+  take assessment-title value and append to 
+  deleted-assessments data attribute
+  get elements matching assessment title data attribute
+  remove corresponding td elements from DOM
+  */ 
+  $(document).on('click', '.deleteBtn', e => {
+    // get title element
+    const titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
+    const title = titleEl.dataset.assessmentTitle.trim()
+
+    //get table
+    const tableEl = $('table')[0]
+    let editedAssessmentArray = JSON.parse(tableEl.dataset.editedAssessments)
+    let newAsssessmentArray = JSON.parse(tableEl.dataset.newAssessments)
+
+    // get deleted data attribute value
+    // push deleted assessment title to array
+    let deletedAssessmentArray = JSON.parse(tableEl.dataset.deletedAssessments)
+    deletedAssessmentArray.push(title)
+
+    // remove deleted title from edited assessment array if it is edited
+    const filteredEditedAssessmentArray = editedAssessmentArray.filter(ele=>ele !== title)
+    // remove deleted title from new assessment array if it is new
+    const filteredNewAssessmentArray = newAsssessmentArray.filter(ele => {
+      // remove title added to deletedAssessmentArray 
+      if (ele === title) {
+        deletedAssessmentArray.splice(deletedAssessmentArray.findIndex(s => s === title), 1)
+      }
+      return ele !== title
+    })
+
+    // update data attribute
+    tableEl.dataset.editedAssessments = JSON.stringify(filteredEditedAssessmentArray)
+    tableEl.dataset.newAssessments = JSON.stringify(filteredNewAssessmentArray)
+    tableEl.dataset.deletedAssessments = JSON.stringify(deletedAssessmentArray)
+
+    // get elements matching data attribute title
+    // and remove them from the DOM
+    const matchedElements = $(`[data-assessment-title="${title}"`)
+    $(matchedElements).each( (index) => {
+      $(matchedElements[index].parentElement).remove()
+    })
+  })
+
+
+
+
   // csrf token setup
   $(function () {
     // This function gets cookie with a given name
@@ -227,63 +437,20 @@
     });
   });
 
-  $("#add_assessment_btn").click((e) => {
-    const thEl = document.createElement("th");
-    thEl.innerText = document.getElementById("assessment_desc").value;
-    const theadTrEl = document
-      .getElementsByTagName("thead")[0]
-      .getElementsByTagName("tr")[0];
-    theadTrEl.appendChild(thEl);
+  
 
-    // get rows in table body element
-    const tbodyTrEl = document
-      .getElementsByTagName("tbody")[0]
-      .getElementsByTagName("tr");
-
-    // loop through rows
-    for (let i of Object.keys(tbodyTrEl)) {
-      // create td element
-      const tdEl = document.createElement("td");
-
-      // create input element for score
-      const inputEl = document.createElement("input");
-      inputEl.setAttribute("name", "score");
-      inputEl.setAttribute("maxlength", 7);
-      inputEl.setAttribute("value", 0);
-      inputEl.style.width = "8ch";
-      inputEl.onkeyup = checkScoreIsNum
-
-      // create input element for assessment type
-      const assessementTypeEl = document.createElement("input");
-      assessementTypeEl.value =
-        document.getElementById("assessment_type").value;
-      assessementTypeEl.setAttribute("name", "assessment_type");
-      assessementTypeEl.setAttribute("hidden", true);
-
-      // create input element for assessment description
-      const assessementDescEl = document.createElement("input");
-      assessementDescEl.value =
-        document.getElementById("assessment_desc").value;
-      assessementDescEl.setAttribute("name", "assessment_desc");
-      assessementDescEl.setAttribute("hidden", true);
-
-      tdEl.appendChild(assessementTypeEl);
-      tdEl.appendChild(assessementDescEl);
-      tdEl.appendChild(inputEl);
-      tbodyTrEl[i].appendChild(tdEl);
-    }
-  });
-
+  // on save 
   $("#save_btn").click((e) => {
     e.preventDefault();
-    save_assessment();
+    const data = get_assessments()
+    save_assessment(data);
   });
 
-  function save_assessment() {
+  function save_assessment(data) {
     $.ajax({
       url: "{% url 'save_student_result' user_school_id %}", // the endpoint
       type: "POST", // http method
-      data: {  'data': get_assessments() }, // data sent with the post request
+      data: {  'data': data }, // data sent with the post request
 
 
       // handle a successful response
@@ -296,68 +463,139 @@
         window.location.replace(res.redirectUrl)
       },
     });
-
-    // return assessment for each student from table
-    function get_assessments() {
-      // get rows in table body
-      const tbodyTrEl = document
-        .getElementsByTagName("tbody")[0]
-        .getElementsByTagName("tr");
-
-      assessments = [];
-      // loop through rows and extract relevant information
-      for (let i of Object.keys(tbodyTrEl)) {
-        const student_school_id =
-          tbodyTrEl[i].getElementsByTagName("td")[0].innerText;
-        const tdEls = tbodyTrEl[i].getElementsByTagName("td");
+  }
 
 
 
+  /*
+  returns stringified JSON object 
+    { subject_id: "", new_assessments: [], 
+      edited_assessments: [], 
+      deleted_assessments: []
+    }
+    new: [{student_school_id, assessment_type, assessment_title, score}]
+    edited: [{assessment_id,  assessment_title, assessment_score}]
+    deleted: ['assessment_id']
+  */
+  function get_assessments() {
+    const tempNewAssessments = $('table')[0].dataset.newAssessments
+    const tempEditedAssessments = $('table')[0].dataset.editedAssessments
+    const tempDeletedAssessments = $('table')[0].dataset.deletedAssessments
 
-        // loop through td elements
-        for (let u of Object.keys(tdEls)) {
-          const inputEls = tdEls[u].getElementsByTagName('input')
+    const newAssessments = JSON.parse(tempNewAssessments)
+    const editedAssessments = JSON.parse(tempEditedAssessments)
+    const deletedAssessments = JSON.parse(tempDeletedAssessments)
 
-          if (inputEls.length > 0) {
-            const assessment_type =
-            inputEls[0].value.trim();
-            const assessment_desc =
-            inputEls[1].value.trim();
-            const assessment_score =
-            inputEls[2].value.trim();
+    const newAssessmentsArray = []
+    const editedAssessmentsArray = []
+    const deletedAssessmentsArray = []
 
-            if (isNaN(assessment_score) || assessment_score === '') {
-              throw new Error('an input field for score contains non-numerical value(s)')
-            }
+    // loop through new assessments
+    for (let i=0; i<newAssessments.length; i++) {
+      const assessmentTitle = newAssessments[i].trim()
 
-            assessments.push({
-              student_school_id: student_school_id,
-              assessment_score: assessment_score,
-              assessment_type: assessment_type,
-              assessment_desc: assessment_desc,
-            });
-          }
+      // get elements with assessment-title data attribute eq to assessmentTitle
+      const matchedAssessmentArray = $(`[data-assessment-title="${assessmentTitle}"]`)
 
+      // loop through matched array
+      // start at index 1 to avoid thead>tr>th>span element
+      for (let j=1; j<matchedAssessmentArray.length; j++) {
+        const studentSchoolId = matchedAssessmentArray[j].dataset.schoolId
+        const assessmentType = matchedAssessmentArray[j].dataset.assessmentType
+        const score = matchedAssessmentArray[j].value.trim()
+
+        // validate score
+        checkScoreIsNum(matchedAssessmentArray[j])
+
+        const assessment = {
+          student_school_id: studentSchoolId, 
+          assessment_type: assessmentType, 
+          assessment_desc: assessmentTitle, 
+          assessment_score: score
         }
+        
+        newAssessmentsArray.push(assessment)
       }
-
-      return JSON.stringify({ 'subject_id': {{ subject.id }}, 'assessments': assessments})
     }
+
+    // loop through edited assessments
+    for (let i=0; i<editedAssessments.length; i++) {
+      const assessmentTitle = editedAssessments[i]
+
+      // get elements with assessment-title data attribute eq to assessmentTitle
+      const matchedAssessmentArray = $(`[data-assessment-title="${assessmentTitle}"]`)
+      checkEmptyOrUnique(matchedAssessmentArray[0])
+
+      // loop through matched array
+      // start at index 1 to avoid thead>tr>th>span element
+      for (let j=1; j<matchedAssessmentArray.length; j++) {
+        const assessmentId = matchedAssessmentArray[j].dataset.assessmentId
+        const newAssessmentTitle = matchedAssessmentArray[0].value.trim()
+        const score = matchedAssessmentArray[j].value.trim()
+
+        // validate score
+        checkScoreIsNum(matchedAssessmentArray[j])
+
+        const assessment = {
+          assessment_id: assessmentId,
+          assessment_desc: newAssessmentTitle,
+          assessment_score: score
+        }
+
+        editedAssessmentsArray.push(assessment)
+      }
+    }
+
+    // loop through deleted assessments
+    for (let i=0; i<deletedAssessments.length; i++) {
+      const assessmentTitle = deletedAssessments[i]
+      deletedAssessmentsArray.push(assessmentTitle)
+    }
+
+    const subjectId = {{ subject.id }}
+    const data = { 'subject_id': subjectId }
+    if (newAssessmentsArray.length > 0) {data["new_assessments"] = newAssessmentsArray}
+    if (editedAssessmentsArray.length > 0) {data["edited_assessments"] = editedAssessmentsArray}
+    if (deletedAssessmentsArray.length > 0) {data["deleted_assessments"] = deletedAssessmentsArray}
+
+    return JSON.stringify({ ...data })
   }
 
 
-  function checkScoreIsNum(e) {
-    const trimmedNum = e.target.value.trim()
+  // validate score
+  function checkScoreIsNum(element) {
+    const trimmedNum = element.value.trim()
     if (isNaN(trimmedNum) || trimmedNum === '') {
-      e.target.setCustomValidity('Field accepts only numbers')
-      e.target.reportValidity()
+      element.setCustomValidity("Field accepts only numbers and can't be empty")
+      element.reportValidity()
+      throw new Error(`Field accepts only numbers and can't be empty`)
+    }
+  }
+
+  
+  // validate assessment title
+  function checkEmptyOrUnique(element) {
+
+    // check if assessment description is empty
+    if (element.value.trim() === '') {
+      element.setCustomValidity("Field can't be empty")
+      element.reportValidity()
+      throw new Error(`Field can't be empty"`)
     }
 
+    // check if assessment description already exists
+    const assessmentTitles = document.getElementsByClassName('assessmentTitle')
+    for (let _ in Object.keys(assessmentTitles)) {
+      const title = assessmentTitles[_].innerText.trim().toLowerCase()
+      if (title === element.value.trim().toLowerCase()) {
+        element.setCustomValidity("Assessment already exists, use a different description")
+        element.reportValidity()
+        setInterval(() => {})
+        throw new Error('Assessment already exists, use a different description')
+      }
+    }
   }
-
-  function showMessage(res) {
-
-  }
+  
 </script>
 
 {% endblock custom_js %}
