@@ -61,6 +61,7 @@
               name="assessment_type"
               id="assessment_type"
             >
+            <option value="" selected disabled>choose assessment type</option>
               {% for assessment in assessment_choices %}
               <option value="{{ assessment.0 }}">
                 {{ assessment.1.title }}
@@ -208,8 +209,18 @@
   */
   $("#add_assessment_btn").click((e) => {
 
-    const assessmentTypeInput = document.getElementById('assessment_desc')
-    checkEmptyOrUnique(assessmentTypeInput)
+
+    // validate assessment type
+    const assessmentTypeEl= document.getElementById('assessment_type')
+    if (assessmentTypeEl.value.length === 0) {
+      assessmentTypeEl.setCustomValidity("Choose an assessment type")
+      assessmentTypeEl.reportValidity()
+      throw new Error(`Choose an assessment type`)
+    }
+    assessmentTypeEl.value = ""
+
+    const assessmentDescInput = document.getElementById('assessment_desc')
+    checkEmptyOrUnique(assessmentDescInput)
 
 
     // create title th element

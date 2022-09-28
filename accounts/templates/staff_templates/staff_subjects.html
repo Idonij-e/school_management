@@ -74,8 +74,8 @@
                                 <td>{{ subject.subject_name }}</td>
                                 <td>{{ subject.class_level.class_level_name }}</td>
                                 <td>
-                                    <a href="{% url 'staff_add_result' user_school_id subject.id %}" class="btn btn-primary">Add Result</a> 
-                                    <a href="#" class="btn btn-secondary">Update Result</a>
+                                    <a href="{% url 'staff_add_result' user_school_id subject.id %}" class="btn btn-primary">Assessment add/edit</a> 
+                                    <a href="#" class="btn btn-secondary">Final Assessment submission</a>
                                 </td>
                                 </tr>
                                 {% endfor %}
