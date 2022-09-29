@@ -96,41 +96,43 @@
         <!-- general form elements -->
         <div class="card">
           <div class="card-header">
-            <div class="card-tools">
-              <div class="input-group input-group-sm" style="width: 150px">
-                <form action="" method="post">
-                  {% csrf_token %}
+            <div class="card-tools w-100">
+              <div class="d-flex justify-content-between w-100">
+                <div>
+                        <a class="btn btn-primary" href="{% url 'staff_subjects' user_school_id %}" role="button">Back to Subjects</a> <br/>&nbsp;
+                </div>
+                <div>
+                <div class="input-group input-group-sm" style="width: 150px">
+                  <form action="" method="post">
+                    {% csrf_token %}
+  
+                    <div class="input-group-append">
+                      <input
+                        type="search"
+                        aria-label="Search"
+                        name="searched"
+                        class="form-control float-right"
+                      />
+  
+                      <button type="submit" class="btn btn-default">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+                </div>
+            </div>
 
-                  <div class="input-group-append">
-                    <input
-                      type="search"
-                      aria-label="Search"
-                      name="searched"
-                      class="form-control float-right"
-                    />
-
-                    <button type="submit" class="btn btn-default">
-                      <i class="fas fa-search"></i>
-                    </button>
-                  </div>
-                </form>
-              </div>
+              
             </div>
           </div>
           <!-- /.card-header -->
           <div class="card-body table-responsive p-0">
-            <form
-              action="{% url 'save_student_result' user_school_id %}"
-              method="POST"
-            >
-              {% csrf_token %}
               <table class="table table-hover text-nowrap" name="table">
                 <thead>
                   <tr>
                     <th>Student ID</th>
-                    <th>Student First Name</th>
-                    <th>Student Last Name</th>
-                    <th>Student Other Names</th>
+                    <th>Name</th>
                     {% for assessment in assessments|unique:"assessment_desc" %}
                     <th>
                       <span class="assessmentTitle" data-assessment-title="{{ assessment.assessment_desc }}">
@@ -138,7 +140,7 @@
                       </span>
                       <span>
                         <i class="fas fa-pen editBtn text-primary ml-1" ></i>
-                        <i class="fas fa-trash deleteBtn text-danger ml-1"></i>
+                        <i class="fas fa-trash preDeleteBtn text-danger ml-1" data-toggle="modal" data-target=".bd-example-modal-sm"></i>
                       </span>
                     </th>
                     {% endfor %}
@@ -149,9 +151,7 @@
                   {% for student in students %}
                   <tr>
                     <td>{{ student.user.school_id }}</td>
-                    <td>{{ student.user.first_name }}</td>
-                    <td>{{ student.user.last_name }}</td>
-                    <td>{{ student.user.other_names }}</td>
+                    <td>{{ student.user.last_name }} {{ student.user.first_name }} {{ student.user.other_names }}</td>
                     {% for assessment in student|student_assessments_filter:subject.id %}
                     <td class="text-center">
                       <span data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
@@ -164,16 +164,29 @@
                   {% endfor %}
                 </tbody>
               </table>
-              <button type="submit" class="btn btn-default" id="save_btn">
-                Save
-              </button>
-            </form>
             <div id="results"></div>
             <!-- errors go here -->
+            
           </div>
           <!-- /.card-body -->
+
         </div>
         <!-- /.card -->
+        <button type="button" id="save_btn" class="btn btn-success mb-3">Save</button>
+
+      </div>
+    </div>
+
+    <div id="preDeleteModal" class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div id="preDeleteModalContent" class="mb-3 mt-1 text-center">
+          </div>
+          <div class="d-flex justify-content-center mb-3">
+            <button type="button" id="cancelBtn"id="" class="btn btn-secondary btn-sm btn-success mr-3">cancel</button>
+            <button type="button" id="deleteBtn" class="btn btn-secondary btn-sm btn-danger">delete</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -187,7 +200,9 @@
 
 </style>
 
-{% endblock main_content %} {% block custom_js %}
+{% endblock main_content %} 
+
+{% block custom_js %}
 
 <script>
 
@@ -217,7 +232,6 @@
       assessmentTypeEl.reportValidity()
       throw new Error(`Choose an assessment type`)
     }
-    assessmentTypeEl.value = ""
 
     const assessmentDescInput = document.getElementById('assessment_desc')
     checkEmptyOrUnique(assessmentDescInput)
@@ -232,7 +246,7 @@
     // create icons span element
     const iconSpan = document.createElement('span')
     // delete icon element
-    const deleteIconBtn = `<i class="fas fa-trash deleteBtn text-danger ml-2"></i>`
+    const deleteIconBtn = `<i class="fas fa-trash text-danger ml-2 preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm"></i>`
 
     // append text element and icon element to title element
     $(iconSpan).append(deleteIconBtn)
@@ -280,6 +294,9 @@
     newAssessmentArray.push(textSpan.innerText.trim())
     // set new-assessments data attribute to newAssessmentArray
     tableEl.dataset.newAssessments = JSON.stringify(newAssessmentArray)
+    // set assessment type back to default
+    assessmentTypeEl.value = ""
+
   });
 
 
@@ -340,6 +357,29 @@
   })
 
 
+
+  /*
+  on click for delete icon
+  pre delete
+  pass assessment title to modal element
+  */
+ $(document).on('click', '.preDeleteBtn', e => {
+  // get element title from data attribute
+  const titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
+  const title = titleEl.dataset.assessmentTitle.trim()
+
+
+  // set modal message
+  const modalMsgEl = document.getElementById('preDeleteModalContent')
+  modalMsgEl.innerText = `Are you sure you want to delete ${title}`
+
+
+  // set title data attribute of delete button
+  const deleteBtnEl = document.getElementById('deleteBtn')
+  deleteBtnEl.dataset.modalAssessmentTitle = title
+ })
+
+
   
   /*
   on click for delete button
@@ -348,10 +388,9 @@
   get elements matching assessment title data attribute
   remove corresponding td elements from DOM
   */ 
-  $(document).on('click', '.deleteBtn', e => {
-    // get title element
-    const titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
-    const title = titleEl.dataset.assessmentTitle.trim()
+  $(document).on('click', '#deleteBtn', e => {
+    // get assessment title 
+    const title = e.target.dataset.modalAssessmentTitle.trim()
 
     //get table
     const tableEl = $('table')[0]
@@ -385,6 +424,12 @@
     $(matchedElements).each( (index) => {
       $(matchedElements[index].parentElement).remove()
     })
+
+    $("#preDeleteModal").modal('hide')
+  })
+
+  $(document).on('click', "#cancelBtn", e => {
+    $("#preDeleteModal").modal('hide')
   })
 
 
@@ -568,6 +613,7 @@
     if (newAssessmentsArray.length > 0) {data["new_assessments"] = newAssessmentsArray}
     if (editedAssessmentsArray.length > 0) {data["edited_assessments"] = editedAssessmentsArray}
     if (deletedAssessmentsArray.length > 0) {data["deleted_assessments"] = deletedAssessmentsArray}
+
 
     return JSON.stringify({ ...data })
   }

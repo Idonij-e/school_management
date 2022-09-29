@@ -496,7 +496,7 @@ def delete_student(request, user_school_id, student_school_id):
         messages.error(request, "Failed to Delete Student.")
 
     finally:
-        return redirect("/" + user_school_id + '/manage_students')
+        return redirect("/" + user_school_id + '/manage_student')
 
 
 

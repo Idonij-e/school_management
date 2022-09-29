@@ -284,7 +284,7 @@ def save_student_result(request, user_school_id):
         messages.success(request, "Assessments {} successfully".format(' and '.join(msg)))
 
     except Exception as e:
-        print(e)
+        print('error: ', e)
         messages.error(request, "Failed to add assessments")
 
     finally:
