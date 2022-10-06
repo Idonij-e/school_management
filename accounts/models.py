@@ -165,11 +165,17 @@ class StudentAssessment(models.Model):
     id=models.AutoField(primary_key=True)
     student=models.ForeignKey(Student,on_delete=models.CASCADE)
     subject=models.ForeignKey(Subject,on_delete=models.CASCADE)
+    # assessment_choices = (
+    #     (1, 'assignment'),
+    #     (2, 'test'),
+    #     (3, 'examination'),
+    #     (4, 'project'),
+    # )
     assessment_choices = (
-        (1, 'assignment'),
-        (2, 'test'),
-        (3, 'examination'),
-        (4, 'project'),
+        ('assignment', "assignment"),
+        ('test', "test"),
+        ('examination', "examination"),
+        ('project', "project"),
     )
     assessment_type = models.CharField(choices=assessment_choices, default=1, max_length=120)
     assessment_desc = models.CharField(max_length=125, null=True, blank=True)

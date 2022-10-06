@@ -1,0 +1,160 @@
+{% extends 'staff_templates/base_template.html' %}
+ {% load custom_filters_tags %} 
+ {% block page_title %} Add Result | {{ user_school_id }} 
+ {% endblock page_title %} 
+ {% block main_content %} 
+ {% load static %}
+
+<section class="content">
+  <div class="container-fluid" id="messages">
+    {% if messages %}
+    <div class="form-group">
+      <div class="col-12">
+        {% for message in messages %} {% if message.tags == "error" %}
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+          style="margin-top: 10px"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="close"
+            data-dismiss="alert"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% elif message.tags == "success" %}
+        <div
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
+          style="margin-top: 10px"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="close"
+            data-dismiss="alert"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-12">
+
+        <!-- general form elements -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-tools w-100">
+              <div class="d-flex justify-content-between w-100">
+                <div>
+                        <a class="btn btn-primary" href="{% url 'staff_subjects' user_school_id %}" role="button">Back to Subjects</a> <br/>&nbsp;
+                </div>
+                <div>
+                <div class="input-group input-group-sm" style="width: 150px">
+                  <form action="" method="post">
+                    {% csrf_token %}
+  
+                    <div class="input-group-append">
+                      <input
+                        type="search"
+                        aria-label="Search"
+                        name="searched"
+                        class="form-control float-right"
+                      />
+  
+                      <button type="submit" class="btn btn-default">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+                </div>
+            </div>
+
+              
+            </div>
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body table-responsive p-0">
+              <table class="table table-hover text-nowrap" name="table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Student ID</th>
+                    <th rowspan="2">Name</th>
+                    {% for key, value in assessments_type_and_number.items %}
+                    <th colspan={{ value }}>
+                      <span class="assessmentTitle" data-assessment-title="{{ assessment.assessment_desc }}">
+                        {{ key.title }}
+                      </span>
+                    </th>
+                    {% endfor %}
+                    <th>Total</th>
+                  </tr>
+                  <tr>
+                    <th></th>
+                    <th></th>
+                    {% for key, assessments in assessments_desc.items %}
+                        {% for assessment_desc in assessments %}
+                            <th>{{ assessment_desc }}</th>
+                        {% endfor %}
+                    {% endfor %}
+                    <th></th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for student in students %}
+                  <tr>
+                    <td>{{ student.user.school_id }}</td>
+                    <td>{{ student.user.last_name }} {{ student.user.first_name }} {{ student.user.other_names }}</td>
+                    {% for assessment in student|order_assessments:assessments_type_and_number %}
+                        <td class="text-center">
+                            <span data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
+                                {{ assessment.score }}
+                            </span>
+                        </td>
+                    {% endfor %}
+                    <td></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            <div id="results"></div>
+            <!-- errors go here -->
+            
+          </div>
+          <!-- /.card-body -->
+
+        </div>
+        <!-- /.card -->
+        <button type="button" id="save_btn" class="btn btn-success mb-3">Save</button>
+
+      </div>
+    </div>
+
+    <div id="preDeleteModal" class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div id="preDeleteModalContent" class="mb-3 mt-1 text-center">
+          </div>
+          <div class="d-flex justify-content-center mb-3">
+            <button type="button" id="cancelBtn"id="" class="btn btn-secondary btn-sm btn-success mr-3">cancel</button>
+            <button type="button" id="deleteBtn" class="btn btn-secondary btn-sm btn-danger">delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.container-fluid -->
+</section>
+
+{% endblock main_content %} 

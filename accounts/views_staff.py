@@ -259,7 +259,7 @@ def save_student_result(request, user_school_id):
                     student = User.objects.get(
                         school_id=assessment.get("student_school_id")
                     ).student
-                    assessment_type = int(assessment.get("assessment_type"))
+                    assessment_type = assessment.get("assessment_type")
                     assessment_desc = assessment.get("assessment_desc")
                     score = float(assessment.get("assessment_score"))
 
@@ -301,3 +301,37 @@ def save_student_result(request, user_school_id):
             content_type="application/json",
             safe=False,
         )
+
+def final_assessment(request, user_school_id, subject_id):
+    subject = Subject.objects.get(id=subject_id)
+    assessments = StudentAssessment.objects.filter(subject=subject_id)
+    students = subject.class_level.student_set.all()
+    assessments_student_zero = students[0].studentassessment_set.all()
+
+    assessments_type_and_num = {}
+    assessments_desc = {}
+
+    for assessment in assessments_student_zero:
+
+        if assessment.assessment_type in assessments_type_and_num:
+            assessments_type_and_num[assessment.assessment_type] += 1
+            assessments_desc[assessment.assessment_type]= assessments_desc[assessment.assessment_type] + [assessment.assessment_desc]
+
+        else:
+            assessments_type_and_num[assessment.assessment_type] = 1
+            assessments_desc[assessment.assessment_type] = [assessment.assessment_desc]
+
+    context = {
+        "user_school_id": user_school_id,
+        "user_first_name": request.session.get("user_first_name"),
+        "user_last_name": request.session.get("user_last_name"),
+        "user_other_names": request.session.get("user_other_names"),
+        "subject": subject,
+        "students": students,
+        'assessments': assessments,
+        'assessments_type_and_number': assessments_type_and_num,
+        "assessments_desc": assessments_desc
+    }
+
+    return render(request, "staff_templates/final_assessment.html", context)
+
