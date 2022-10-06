@@ -88,23 +88,25 @@
               <table class="table table-hover text-nowrap" name="table">
                 <thead>
                   <tr>
-                    <th rowspan="2">Student ID</th>
-                    <th rowspan="2">Name</th>
+                    <th >Student ID</th>
+                    <th>Name</th>
                     {% for key, value in assessments_type_and_number.items %}
-                    <th colspan={{ value }}>
-                      <span class="assessmentTitle" data-assessment-title="{{ assessment.assessment_desc }}">
+                    <th class="text-center" colspan={{ value }}>
+                      <span>
                         {{ key.title }}
                       </span>
                     </th>
                     {% endfor %}
-                    <th>Total</th>
+                    <th>
+                        Total Score
+                    </th>
                   </tr>
                   <tr>
                     <th></th>
                     <th></th>
                     {% for key, assessments in assessments_desc.items %}
                         {% for assessment_desc in assessments %}
-                            <th>{{ assessment_desc }}</th>
+                            <th class="text-center">{{ assessment_desc }}</th>
                         {% endfor %}
                     {% endfor %}
                     <th></th>
@@ -113,18 +115,18 @@
 
                 <tbody>
                   {% for student in students %}
-                  <tr>
-                    <td>{{ student.user.school_id }}</td>
-                    <td>{{ student.user.last_name }} {{ student.user.first_name }} {{ student.user.other_names }}</td>
-                    {% for assessment in student|order_assessments:assessments_type_and_number %}
-                        <td class="text-center">
-                            <span data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
-                                {{ assessment.score }}
-                            </span>
-                        </td>
-                    {% endfor %}
-                    <td></td>
-                  </tr>
+                    <tr>
+                        <td>{{ student.user.school_id }}</td>
+                        <td>{{ student.user.last_name }} {{ student.user.first_name }} {{ student.user.other_names }}</td>
+                        {% for assessment in student|order_assessments:assessments_type_and_number %}
+                            <td class="text-center">
+                                <span class="score" data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
+                                    {{ assessment.score }}
+                                </span>
+                            </td>
+                        {% endfor %}
+                        <td class="final_score text-center"></td>
+                    </tr>
                   {% endfor %}
                 </tbody>
               </table>
@@ -158,3 +160,23 @@
 </section>
 
 {% endblock main_content %} 
+
+{% block custom_js %}
+
+    <script>
+
+    const tbodyEl = document.getElementsByTagName('tbody')[0]
+    const trEls = tbodyEl.getElementsByTagName('tr')
+    
+    for (let row=0; row<Object.keys(trEls).length; row++) {
+        const scores = trEls[row].getElementsByClassName('score')
+        let final_score = 0
+        for (let scoreIndex=0; scoreIndex<Object.keys(scores).length; scoreIndex++) {
+            final_score += Number(scores[scoreIndex].innerHTML)
+        }
+        const finalScoreEl = trEls[row].getElementsByClassName('final_score')
+        finalScoreEl[0].innerHTML = final_score
+    }
+    </script>
+
+{% endblock %}
