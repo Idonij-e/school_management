@@ -85,7 +85,7 @@
                                 <td>{{ session.session_end }}</td>
                                 <td>
                                     <a href="{% url 'edit_session' user_school_id session.id %}" class="btn btn-success">Edit</a> 
-                                    <a href="#" data-href="{% url 'delete_session' user_school_id session.id %}" class="btn btn-danger preDeleteBtn">Delete</a>
+                                    <a href="#" data-href="{% url 'delete_session' user_school_id session.id %}" class="btn btn-danger preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm">Delete</a>
                                 </td>
                                 </tr>
                                 {% endfor %}

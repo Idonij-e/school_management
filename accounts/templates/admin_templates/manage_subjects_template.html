@@ -92,7 +92,7 @@
                                 <td>{{ subject.updated_at }}</td>
                                 <td>
                                     <a href="{% url 'edit_subject' user_school_id subject.id %}" class="btn btn-success">Edit</a> 
-                                    <a href="#" data-href="{% url 'delete_subject' user_school_id subject.id %}" class="btn btn-danger preDeleteBtn">Delete</a>
+                                    <a href="#" data-href="{% url 'delete_subject' user_school_id subject.id %}" class="btn btn-danger preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm">Delete</a>
                                 </td>
                                 </tr>
                                 {% endfor %}

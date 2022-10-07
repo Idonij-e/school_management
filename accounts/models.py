@@ -103,6 +103,7 @@ class Student(models.Model):
 
 term_choices = (("Not Term-related","Not Term-related"),("Term 1","Term 1"), ("Term 2","Term 2"), ("Term 3","Term 3"))
 PAYSTACK_RECEIPT_EMAIL = os.getenv('PAYSTACK_RECEIPT_EMAIL')
+
 class Fee(models.Model):
     id=models.AutoField(primary_key=True)
     fee_name=models.CharField(max_length=255)
@@ -141,8 +142,9 @@ class Payment(models.Model):
     def verify_payment(self):
         paystack = PayStack()
         status, result = paystack.verify_payment(self.ref, self.fee_id.fee_amount)
+        print('\n\n', status, '\n\n')
         if status:
-            if result['fee_id.fee_amount'] / 100 == self.fee_id.fee_amount:
+            if result['amount'] / 100 == self.fee_id.fee_amount:
                 self.verified = True
             self.save()
         if self.verified:

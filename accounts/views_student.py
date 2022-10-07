@@ -3,11 +3,22 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.conf import settings
 
-from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment, StudentAssessment
+from accounts.models import (
+    User,
+    Administrator,
+    Staff,
+    Student,
+    Session,
+    ClassLevel,
+    Subject,
+    Fee,
+    Payment,
+    StudentAssessment,
+)
 from accounts.forms import AddStudentForm, EditStudentForm
 from http.client import HTTPResponse
 
-#for payment pdf generation
+# for payment pdf generation
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 
@@ -15,64 +26,76 @@ from xhtml2pdf import pisa
 def home(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     student = user.student
-    
+
     # data used in every view
-    request.session['user_school_id'] = user.school_id
-    request.session['user_first_name'] = user.first_name
-    request.session['user_last_name'] = user.last_name
-    request.session['user_other_names'] = user.other_names
+    request.session["user_school_id"] = user.school_id
+    request.session["user_first_name"] = user.first_name
+    request.session["user_last_name"] = user.last_name
+    request.session["user_other_names"] = user.other_names
 
     subjects = student.class_level.subject_set.all()
-    course=ClassLevel.objects.get(id=student.class_level.id)
-    fee_term_one = Fee.objects.filter(course_id=course, term ='Term 1')
-    fee_term_two = Fee.objects.filter(course_id=course, term ='Term 2')
-    fee_term_three = Fee.objects.filter(course_id=course, term ='Term 3')
-    fee_others = Fee.objects.filter(course_id=course, term ='Not Term-related')
+    course = ClassLevel.objects.get(id=student.class_level.id)
+    fee_term_one = Fee.objects.filter(course_id=course, term="Term 1")
+    fee_term_two = Fee.objects.filter(course_id=course, term="Term 2")
+    fee_term_three = Fee.objects.filter(course_id=course, term="Term 3")
+    fee_others = Fee.objects.filter(course_id=course, term="Not Term-related")
 
     context = {
-        'user_school_id': request.session.get('user_school_id'),
-        'user_first_name': request.session.get('user_first_name'),
-        'user_last_name': request.session.get('user_last_name'),
-        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": request.session.get("user_school_id"),
+        "user_first_name": request.session.get("user_first_name"),
+        "user_last_name": request.session.get("user_last_name"),
+        "user_other_names": request.session.get("user_other_names"),
         "subjects": subjects,
-        "fee_term_one":fee_term_one,
-        "fee_term_two":fee_term_two,
-        "fee_term_three":fee_term_three,
-        "fee_others":fee_others
+        "fee_term_one": fee_term_one,
+        "fee_term_two": fee_term_two,
+        "fee_term_three": fee_term_three,
+        "fee_others": fee_others,
     }
 
     return render(request, "student_templates/home_template.html", context)
+
 
 def profile(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     student = user.student
 
-    context={
+    subjects = student.class_level.subject_set.all()
+    course = ClassLevel.objects.get(id=student.class_level.id)
+    fee_term_one = Fee.objects.filter(course_id=course, term="Term 1")
+    fee_term_two = Fee.objects.filter(course_id=course, term="Term 2")
+    fee_term_three = Fee.objects.filter(course_id=course, term="Term 3")
+    fee_others = Fee.objects.filter(course_id=course, term="Not Term-related")
+
+    context = {
         "user": user,
-        'user_school_id': request.session.get('user_school_id'),
-        'user_first_name': request.session.get('user_first_name'),
-        'user_last_name': request.session.get('user_last_name'),
-        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": request.session.get("user_school_id"),
+        "user_first_name": request.session.get("user_first_name"),
+        "user_last_name": request.session.get("user_last_name"),
+        "user_other_names": request.session.get("user_other_names"),
         "student": student,
         "gender_data": user.gender_data,
+        "fee_term_one": fee_term_one,
+        "fee_term_two": fee_term_two,
+        "fee_term_three": fee_term_three,
+        "fee_others": fee_others,
     }
-    return render(request, 'student_templates/student_profile.html', context)
-    
+    return render(request, "student_templates/student_profile.html", context)
+
 
 def edit_profile(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
-        return redirect("/" + user_school_id + '/student_profile')
+        return redirect("/" + user_school_id + "/student_profile")
 
     else:
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        other_names = request.POST.get('other_names')
-        password = request.POST.get('password')
-        email = request.POST.get('email')
-        gender = request.POST.get('gender')
-        phone_number = request.POST.get('phone_number')
-        address = request.POST.get('address')
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        other_names = request.POST.get("other_names")
+        password = request.POST.get("password")
+        email = request.POST.get("email")
+        gender = request.POST.get("gender")
+        phone_number = request.POST.get("phone_number")
+        address = request.POST.get("address")
 
         try:
             user = User.objects.get(school_id=user_school_id)
@@ -94,24 +117,38 @@ def edit_profile(request, user_school_id):
             messages.error(request, "Failed to Update Profile")
 
         finally:
-            return redirect("/" + user_school_id + '/student_profile')
+            return redirect("/" + user_school_id + "/student_profile")
+
 
 def initiate_payment(request, user_school_id, fee_id):
-    fee = Fee.objects.get(custom_id=fee_id)
+    fee = Fee.objects.get(id=fee_id)
     user = User.objects.get(school_id=user_school_id)
-    payment_model = Payment(fee_id=fee, student=user)
-    payment = payment_model.save()
+    payment_model = Payment(fee_id=fee, student=user.student)
+    payment_model.save()
+    student = user.student
 
-    context = { 
-        'user_first_name': request.session.get('user_first_name'),
-        'user_last_name': request.session.get('user_last_name'),
-        'user_other_names': request.session.get('user_other_names'),
+    subjects = student.class_level.subject_set.all()
+    course = ClassLevel.objects.get(id=student.class_level.id)
+    fee_term_one = Fee.objects.filter(course_id=course, term="Term 1")
+    fee_term_two = Fee.objects.filter(course_id=course, term="Term 2")
+    fee_term_three = Fee.objects.filter(course_id=course, term="Term 3")
+    fee_others = Fee.objects.filter(course_id=course, term="Not Term-related")
+
+    context = {
+        "user_first_name": request.session.get("user_first_name"),
+        "user_last_name": request.session.get("user_last_name"),
+        "user_other_names": request.session.get("user_other_names"),
         "user_school_id": user_school_id,
-        'fee':fee,
-        'payment': payment,
-        'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY
-        }
-    return render(request,"student_templates/make_payment.html", context)
+        "fee": fee,
+        "payment": payment_model,
+        "paystack_public_key": settings.PAYSTACK_PUBLIC_KEY,
+        "fee_term_one": fee_term_one,
+        "fee_term_two": fee_term_two,
+        "fee_term_three": fee_term_three,
+        "fee_others": fee_others,
+    }
+    return render(request, "student_templates/make_payment.html", context)
+
 
 def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
     payment = get_object_or_404(Payment, ref=ref)
@@ -120,57 +157,67 @@ def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
         messages.success(request, "Verification Successful")
     else:
         messages.error(request, "Verification Failed.")
-    return redirect('initiate-payment')
+    return render(request, "student_templates/payment_status.html")
+
 
 def payment_history(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     student = user.student
-    course=ClassLevel.objects.get(id=student.class_level.id)
+    course = ClassLevel.objects.get(id=student.class_level.id)
     payment_all = Payment.objects.filter(student=user, verified=True)
-    context = { 
-        'user_first_name': request.session.get('user_first_name'),
-        'user_last_name': request.session.get('user_last_name'),
-        'user_other_names': request.session.get('user_other_names'),
+    fee_term_one = Fee.objects.filter(course_id=course, term="Term 1")
+    fee_term_two = Fee.objects.filter(course_id=course, term="Term 2")
+    fee_term_three = Fee.objects.filter(course_id=course, term="Term 3")
+    fee_others = Fee.objects.filter(course_id=course, term="Not Term-related")
+
+    context = {
+        "user_first_name": request.session.get("user_first_name"),
+        "user_last_name": request.session.get("user_last_name"),
+        "user_other_names": request.session.get("user_other_names"),
         "user_school_id": user_school_id,
-        'payment_all': payment_all,
-        'course':course
-        }
-    return render(request,"student_templates/payment_history.html", context)
+        "payment_all": payment_all,
+        "course": course,
+        "fee_term_one": fee_term_one,
+        "fee_term_two": fee_term_two,
+        "fee_term_three": fee_term_three,
+        "fee_others": fee_others,
+    }
+    return render(request, "student_templates/payment_history.html", context)
+
 
 def payment_pdf(request, *args, **kwargs):
-    ref = kwargs.get('ref')
+    ref = kwargs.get("ref")
     payment = get_object_or_404(Payment, ref)
     sessions = Session.objects.all()
-    template_path = 'student_templates/payment_pdf.html'
-    context = {'payment': payment,
-                'sessions': sessions
-    }
+    template_path = "student_templates/payment_pdf.html"
+    context = {"payment": payment, "sessions": sessions}
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="payment.pdf"'
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="payment.pdf"'
 
     template = get_template(template_path)
     html = template.render(context)
-    
-    pisa_status = pisa.CreatePDF(
-        html, dest=response
-    )
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
 
     if pisa_status.err:
-        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return HttpResponse("We had some errors <pre>" + html + "</pre>")
     return response
+
 
 def student_view_result(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
-    #student=Student.objects.get(user=request.user.id)
-    studentresult=StudentResult.objects.filter(student=user.id)
+    # student=Student.objects.get(user=request.user.id)
+    studentresult = StudentResult.objects.filter(student=user.id)
 
-    context = { 
-        'user_first_name': request.session.get('user_first_name'),
-        'user_last_name': request.session.get('user_last_name'),
-        'user_other_names': request.session.get('user_other_names'),
+    context = {
+        "user_first_name": request.session.get("user_first_name"),
+        "user_last_name": request.session.get("user_last_name"),
+        "user_other_names": request.session.get("user_other_names"),
         "user_school_id": user_school_id,
-        "studentresult": studentresult
-        }
-    return render(request,"student_templates/student_result.html", context)
+        "studentresult": studentresult,
+    }
+    return render(request, "student_templates/student_result.html", context)
 
+def payment_status(request, payment_ref):
+    return HttpResponse('successfully, payment reference: ' + payment_ref)

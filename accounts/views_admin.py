@@ -994,8 +994,8 @@ def add_fee_save(request, user_school_id):
         messages.error(request, "Invalid Method")
         return redirect("/" + user_school_id + '/add_fee')    
 
-def edit_fee(request, user_school_id, custom_id):
-    fee=Fee.objects.get(custom_id=custom_id)
+def edit_fee(request, user_school_id, fee_id):
+    fee=Fee.objects.get(id=fee_id)
     form = FeeForm(request.POST or None, instance=fee)
     context = {
         'user_first_name': request.session.get('user_first_name'),
@@ -1013,8 +1013,8 @@ def edit_fee(request, user_school_id, custom_id):
     return render(request,"admin_templates/edit_fee_template.html", context)
 
 
-def delete_fee(request, user_school_id, custom_id):
-    fee=Fee.objects.get(custom_id=custom_id)
+def delete_fee(request, user_school_id, fee_id):
+    fee=Fee.objects.get(id=fee_id)
     try:
         fee.delete()
         messages.success(request, "Fee Deleted Successfully.")

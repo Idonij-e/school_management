@@ -78,7 +78,7 @@
                                     <a href="{% url 'edit_class' user_school_id class_level.id %}" class="btn btn-success">Edit</a> 
                                     <a href="{% url 'manage_class_students' user_school_id class_level.class_level_name %}" class="btn btn-info">Students</a>
                                     <a href="{% url 'manage_class_subjects' user_school_id class_level.class_level_name %}" class="btn btn-info">Subjects</a>
-                                    <a href="#" data-href="{% url 'delete_class' user_school_id class_level.id %}" class="btn btn-danger preDeleteBtn">Delete</a>
+                                    <a href="#" data-href="{% url 'delete_class' user_school_id class_level.id %}" class="btn btn-danger preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm">Delete</a>
                                 </td>
                                 </tr>
                                 {% endfor %}

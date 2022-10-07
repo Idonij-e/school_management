@@ -36,7 +36,7 @@ urlpatterns = [
     path('<user_school_id>/edit_class/<class_level_id>', views_admin.edit_class, name="edit_class"),
     path('<user_school_id>/edit_subject/<subject_id>', views_admin.edit_subject, name="edit_subject"),
     path('<user_school_id>/edit_session/<session_id>', views_admin.edit_session, name="edit_session"),
-    path('<user_school_id>/edit_fee/<str:custom_id>', views_admin.edit_fee, name="edit_fee"),
+    path('<user_school_id>/edit_fee/<str:fee_id>', views_admin.edit_fee, name="edit_fee"),
 
     path('<user_school_id>/edit_staff_save', views_admin.edit_staff_save, name="edit_staff_save"),
     path('<user_school_id>/edit_student_save', views_admin.edit_student_save, name="edit_student_save"),
@@ -49,7 +49,7 @@ urlpatterns = [
     path('<user_school_id>/delete_class/<class_level_id>', views_admin.delete_class, name="delete_class"),
     path('<user_school_id>/delete_subject/<subject_id>', views_admin.delete_subject, name="delete_subject"),    
     path('<user_school_id>/delete_session/<session_id>', views_admin.delete_session, name="delete_session"),
-    path('<user_school_id>/delete_fee/<custom_id>', views_admin.delete_fee, name="delete_fee"),    
+    path('<user_school_id>/delete_fee/<fee_id>', views_admin.delete_fee, name="delete_fee"),    
 
     path('<user_school_id>/manage_staff', views_admin.manage_staff, name="manage_staff"),
     path('<user_school_id>/manage_student', views_admin.manage_student, name="manage_student"),
@@ -89,9 +89,10 @@ urlpatterns = [
     path('<user_school_id>/student_home', views_student.home, name="student_home"),
     path('<user_school_id>/student_profile', views_student.profile, name="student_profile"),
     path('<user_school_id>/edit_student_profile', views_student.edit_profile, name="edit_student_profile"),
-    path('<user_school_id>/make_payment/<custom_id>', views_student.initiate_payment, name="initiate_payment"),
+    path('<user_school_id>/make_payment/<fee_id>', views_student.initiate_payment, name="initiate_payment"),
     path('<str:ref>/', views_student.verify_payment, name="verify_payment"),
     path('<user_school_id>/payment_history', views_student.payment_history, name="payment_history"),
-    path('payment_pdf/<str:ref>', views_student.payment_pdf, name="payment_pdf")
+    path('payment_pdf/<str:ref>', views_student.payment_pdf, name="payment_pdf"),
+    path('payment_status/<payment_ref>', views_student.payment_status, name="payment_status")
 
 ]

@@ -42,61 +42,62 @@
             </li>
 
             <li class="nav-item dropdown">
-              <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <a id="navbarDropdown" role="button" href="#collapseFees" class="nav-link dropdown-toggle" data-toggle="collapse" aria-expanded="false" aria-controls="collapseFees">
                 <i class="nav-icon fas fa-th"></i>
                 <p>
                   Make Payment
                 </p>
               </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+
+              <ul class="collapse" id="collapseFees">
 
                 <li class="nav-item dropdown">
-                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-toggle="collapse" data-target=".term1fee" aria-expanded="false">
                     TERM 1
                   </a>
-                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <ul class="collapse term1fee">
                     {% for fee in fee_term_one %}
                       <li>
-                        <a class="dropdown-item" href="{% url 'initiate_payment' user_school_id fee.custom_id %}">{{ fee.fee_name }}</a>
+                        <a class="nav-item dropdown" href="{% url 'initiate_payment' user_school_id fee.id %}">{{ fee.fee_name }}</a>
                       </li>
                     {% endfor %}
                   </ul>
                 </li>
 
                 <li class="nav-item dropdown">
-                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-toggle="collapse" data-target=".term2fee" aria-expanded="false" >
                     TERM 2
                   </a>
-                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <ul class="collapse term2fee">
                     {% for fee in fee_term_two %}
                       <li>
-                        <a class="dropdown-item" href="{% url 'initiate_payment' user_school_id fee.custom_id %}">{{ fee.fee_name }}</a>
+                        <a class="nav-item dropdown" href="{% url 'initiate_payment' user_school_id fee.id %}">{{ fee.fee_name }}</a>
                       </li>
                     {% endfor %}
                   </ul>
                 </li>
 
                 <li class="nav-item dropdown">
-                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-toggle="collapse" data-target=".term3fee" aria-expanded="false">
                     TERM 3
                   </a>
-                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <ul class="collapse term3fee">
                     {% for fee in fee_term_three %}
                       <li>
-                        <a class="dropdown-item" href="{% url 'initiate_payment' user_school_id fee.custom_id %}">{{ fee.fee_name }}</a>
+                        <a class="nav-item dropdown" href="{% url 'initiate_payment' user_school_id fee.id %}">{{ fee.fee_name }}</a>
                       </li>
                     {% endfor %}
                   </ul>
                 </li>
 
                 <li class="nav-item dropdown">
-                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a id="navbarDropdown" role="button" href="#" class="nav-link dropdown-toggle" data-toggle="collapse" data-target=".otherFees" aria-expanded="false">
                     OTHER FEES
                   </a>
-                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <ul class="collapse otherFees">
                     {% for fee in fee_others %}
                       <li>
-                        <a class="dropdown-item" href="{% url 'initiate_payment' user_school_id fee.custom_id %}">{{ fee.fee_name }}</a>
+                        <a class="nav-item dropdown" href="{% url 'initiate_payment' user_school_id fee.id %}">{{ fee.fee_name }}</a>
                       </li>
                     {% endfor %}
                   </ul>
