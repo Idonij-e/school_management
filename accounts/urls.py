@@ -93,6 +93,6 @@ urlpatterns = [
     path('<str:ref>/', views_student.verify_payment, name="verify_payment"),
     path('<user_school_id>/payment_history', views_student.payment_history, name="payment_history"),
     path('payment_pdf/<str:ref>', views_student.payment_pdf, name="payment_pdf"),
-    path('payment_status/<payment_ref>', views_student.payment_status, name="payment_status")
+   
 
 ]

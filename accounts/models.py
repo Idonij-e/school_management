@@ -119,6 +119,7 @@ class Payment(models.Model):
     ref = models.CharField(max_length=200)
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
+    session = models.CharField(max_length=200)
     
 
     class Meta:

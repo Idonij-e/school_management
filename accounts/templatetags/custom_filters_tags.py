@@ -32,3 +32,7 @@ def order_assessments(query_obj, assessment_dict):
         assessments = query_obj.studentassessment_set.filter(assessment_type=key)
         assessments_ordered = assessments_ordered + [*assessments]
     return assessments_ordered
+
+@register.filter
+def format_datetime(obj):
+    return obj.strftime('%d/%m/%Y %H:%M:%S')

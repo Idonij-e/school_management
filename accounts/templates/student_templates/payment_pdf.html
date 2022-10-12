@@ -1,3 +1,5 @@
+{% load custom_filters_tags %} 
+
 <html>
   <head>
     <!-- Required meta tags -->
@@ -14,6 +16,7 @@
       flex-basis: 95%;
       text-align: left;
       display: flex;
+      justify-content: center;
       }
       .school{
         color:rgb(122, 158, 134);
@@ -31,7 +34,7 @@
         width: 20%;
       }
       .base-data-img img{
-        border-radius: 50%;
+        /* border-radius: 50%; */
       }
       .base-data-field-name{
         padding: 0 15px;
@@ -91,7 +94,7 @@
       <section class="data">
         <div class="base-data-img">
           {% if payment.student.user.profile_pic %}
-          <img src="{{payment.student.user.profile_pic.path}}" height="200px">
+          <img src="{{payment.student.user.profile_pic.url}}" height="200px" width="200px">
           {% else %}
           <img src="static/assets/images/user.jpg" height="200px">
           {% endif %}
@@ -131,11 +134,8 @@
         </div>
         <div class="payment-data-field-data">
           <p>{{payment.fee_id.fee_name}}</p>
-          {% for session in sessions %}
-          {% if session.current_session == True %}
-          <p>{{session}}</p>
-          {% endif %}
-          {% endfor %}
+          
+          <p>{{payment.session}}</p>
           <p>Paid</p>
           <p>{{payment.date_created}}</p>
           <p>{{payment.fee_id.fee_amount}}</p>
@@ -146,18 +146,13 @@
           <p>yes</p>
         </div>
       </section>
-      <br>
-      <img src="{{payment.student.user.profile_pic.path}}">
-      <br>
-      <img src="media/{{payment.student.user.profile_pic}}">
-      <br>
-      <img src="static/assets/images/user.jpg">
+     
     
       <footer>
         <hr>
         <div class="footer-info">
         <div class="block-1">
-            <p>Date: dd/mm/YYYY hh:mm:ss WAT</p>
+            <p>Date: {{payment.date_created|format_datetime}} WAT</p>
         </div>
         <div class="block-2">
             <p>{{payment.student.user.school_id}} - Online Payment Slip {{payment.ref}} - Page 1 of 1</p>

@@ -124,6 +124,8 @@ def initiate_payment(request, user_school_id, fee_id):
     fee = Fee.objects.get(id=fee_id)
     user = User.objects.get(school_id=user_school_id)
     payment_model = Payment(fee_id=fee, student=user.student)
+    current_session = Session.objects.get(current_session=True)
+    payment_model.session = str(current_session).split(' ')[0]
     payment_model.save()
     student = user.student
 
@@ -154,17 +156,19 @@ def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
     payment = get_object_or_404(Payment, ref=ref)
     verified = payment.verify_payment()
     if verified:
-        messages.success(request, "Verification Successful")
-    else:
-        messages.error(request, "Verification Failed.")
-    return render(request, "student_templates/payment_status.html")
+        messages.success(request, "{} payment Successful".format(payment.fee_id.fee_name.title()))
+        all_payments = Payment.objects.filter(verified=False)
+        all_payments.delete()
 
+    user_school_id = request.session.get("user_school_id")
+    return redirect("/" + user_school_id + "/payment_history")
+        
 
 def payment_history(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     student = user.student
     course = ClassLevel.objects.get(id=student.class_level.id)
-    payment_all = Payment.objects.filter(student=user, verified=True)
+    payment_all = Payment.objects.filter(student=student, verified=True)
     fee_term_one = Fee.objects.filter(course_id=course, term="Term 1")
     fee_term_two = Fee.objects.filter(course_id=course, term="Term 2")
     fee_term_three = Fee.objects.filter(course_id=course, term="Term 3")
@@ -187,13 +191,13 @@ def payment_history(request, user_school_id):
 
 def payment_pdf(request, *args, **kwargs):
     ref = kwargs.get("ref")
-    payment = get_object_or_404(Payment, ref)
+    payment = get_object_or_404(Payment, ref=ref)
     sessions = Session.objects.all()
     template_path = "student_templates/payment_pdf.html"
     context = {"payment": payment, "sessions": sessions}
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="payment.pdf"'
+    response["Content-Disposition"] = 'filename="payment.pdf"'
 
     template = get_template(template_path)
     html = template.render(context)
@@ -202,7 +206,8 @@ def payment_pdf(request, *args, **kwargs):
 
     if pisa_status.err:
         return HttpResponse("We had some errors <pre>" + html + "</pre>")
-    return response
+    # return response
+    return render(request, template_path, context)
 
 
 def student_view_result(request, user_school_id):
