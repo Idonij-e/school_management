@@ -131,7 +131,7 @@ class Payment(models.Model):
 
     def save(self, *args, **kwargs) -> None:
         while not self.ref:
-            ref = secrets.token_urlsafe(50)
+            ref = secrets.token_urlsafe(25)
             object_with_similar_ref = Payment.objects.filter(ref=ref)
             if not object_with_similar_ref:
                 self.ref = ref
