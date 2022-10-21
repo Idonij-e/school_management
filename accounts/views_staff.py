@@ -235,7 +235,7 @@ def staff_add_result(request, user_school_id, subject_id):
 def save_student_result(request, user_school_id):
     if request.method != "POST":
         print("failed")
-        return redirect("/" + user_school_id + "/2/staff_add_result")
+        return redirect("/" + user_school_id + "/subjects")
 
     data = json.loads(request.POST["data"])
     subject = Subject.objects.get(id=data.get("subject_id"))

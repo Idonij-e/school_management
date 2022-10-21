@@ -7,6 +7,10 @@
 
     <title>Payment Receipt | PDF Download</title>
     <style>
+      @page{
+        size: A4;
+        margin: 2.5cm 1.5cm 3.5cm 1.5cm;
+      }
 
       body {
         display: flex;
@@ -275,8 +279,6 @@
         "https://chart.googleapis.com/chart?cht=qr&chs=500x500&chl=" +
           window.location.href
       );
-
-      window.print()
     </script>
   </body>
 </html>

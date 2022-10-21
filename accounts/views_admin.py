@@ -1,12 +1,14 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.db import transaction
 
-from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee
+from accounts.models import User, Administrator, Staff, Student, Session, ClassLevel, Subject, Fee, Payment
 from accounts.forms import AddStudentForm, EditStudentForm, FeeForm
 from accounts.utils import generate_school_id
 
 import docx
+import json
 from io import StringIO
 
 def home(request, **kwargs):
@@ -1028,6 +1030,18 @@ def delete_fee(request, user_school_id, fee_id):
 
 
 #OTHER VIEWS
+def view_fee_payments(request, user_school_id, student_school_id):
+    student = User.objects.get(school_id=student_school_id)
+    payment_all = Payment.objects.filter(student=student.student, verified=True)
+    context = { 
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "payment_all": payment_all
+        }
+    return render(request, 'admin_templates/student_payment_history.html', context)
+
 def student_records(request, user_school_id, course_id):
     course = ClassLevel.objects.get(class_level_name=course_id)
     students = course.student_set.all()
@@ -1097,6 +1111,54 @@ def student_records_doc(request, course_id):
     #response['Content_Disposition'] = 'attachment;filename=download.docx'
     #response['Content_Encoding'] = 'UTF-8'
     #return response
+
+def change_class_level(request, user_school_id, class_level_name):
+    class_level = ClassLevel.objects.get(class_level_name=class_level_name)
+    class_levels = ClassLevel.objects.all()
+    students = class_level.student_set.all()
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "class_level": class_level,
+        "class_levels": class_levels,
+        "students": students,
+        'change_class_level': True
+    }
+
+    return render(request, "admin_templates/manage_students_template.html", context)
+
+
+def change_class_level_save(request, user_school_id):
+    if request.method != "POST":
+        print("failed")
+        return redirect("/" + user_school_id + "/manage_class")
+
+    data = json.loads(request.POST["data"])
+    new_class = ClassLevel.objects.get(id=data.get('class_id'))
+    old_students = Student.objects.filter(class_level=new_class)
+    
+    try:
+        with transaction.atomic():
+            for student in old_students:
+                student.isOld = True
+                student.save()
+
+            for student_school_user_id in data.get('students'):
+                new_student = User.objects.get(school_id=student_school_user_id)
+                new_student.student.isOld = False
+                new_student.student.class_level = new_class
+                new_student.save()
+
+        messages.success(request, "Student(s) moved successfully")
+        return redirect("/" + user_school_id + "/manage_class/" + new_class.class_level_name + "/manage_students")
+
+    except Exception as e:
+        print('error: ', e)
+        messages.error(request, "Failed to move Student(s)")
+        old_class = ClassLevel.objects.get(id=data.get('students')[0].student.class_level.id)
+        return redirect("/" + user_school_id + "/manage_class/" + old_class.class_level_name + "/manage_students")
 
 
 

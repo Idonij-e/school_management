@@ -65,6 +65,9 @@ urlpatterns = [
 
     path('<user_school_id>/student_records/<course_id>/', views_admin.student_records, name="student_records"),
     path('student_records_doc/<course_id>/', views_admin.student_records_doc, name="student_records_doc"),
+    path('<user_school_id>/payment_history/<student_school_id>', views_admin.view_fee_payments, name="view_fee_payments"),
+    path('<user_school_id>/manage_class/<class_level_name>/change_class', views_admin.change_class_level, name="change_students_class"),
+    path('<user_school_id>/manage_class/change_class_level', views_admin.change_class_level_save, name="change_students_class_save"),
 
 
 

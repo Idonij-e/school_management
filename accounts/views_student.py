@@ -19,8 +19,11 @@ from accounts.forms import AddStudentForm, EditStudentForm
 from http.client import HTTPResponse
 
 # for payment pdf generation
-from django.template.loader import get_template
-from xhtml2pdf import pisa
+from django.template.loader import get_template, render_to_string
+from weasyprint import HTML, CSS
+import tempfile
+#import asyncio
+#from pyppeteer import launch
 
 
 def home(request, user_school_id):
@@ -125,7 +128,7 @@ def initiate_payment(request, user_school_id, fee_id):
     user = User.objects.get(school_id=user_school_id)
     payment_model = Payment(fee_id=fee, student=user.student)
     current_session = Session.objects.get(current_session=True)
-    payment_model.session = str(current_session).split(' ')[0]
+    payment_model.session = str(current_session).split(" ")[0]
     payment_model.save()
     student = user.student
 
@@ -156,13 +159,15 @@ def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
     payment = get_object_or_404(Payment, ref=ref)
     verified = payment.verify_payment()
     if verified:
-        messages.success(request, "{} payment Successful".format(payment.fee_id.fee_name.title()))
+        messages.success(
+            request, "{} payment Successful".format(payment.fee_id.fee_name.title())
+        )
         all_payments = Payment.objects.filter(verified=False)
         all_payments.delete()
 
     user_school_id = request.session.get("user_school_id")
     return redirect("/" + user_school_id + "/payment_history")
-        
+
 
 def payment_history(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
@@ -192,22 +197,31 @@ def payment_history(request, user_school_id):
 def payment_pdf(request, *args, **kwargs):
     ref = kwargs.get("ref")
     payment = get_object_or_404(Payment, ref=ref)
-    sessions = Session.objects.all()
     template_path = "student_templates/payment_pdf.html"
-    context = {"payment": payment, "sessions": sessions}
+    context = {"payment": payment}
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'filename="payment.pdf"'
+    response["Content-Disposition"] = 'inline; filename="payment.pdf"'
+    response["Content-Transfer-Encoding"] = 'binary' 
 
-    template = get_template(template_path)
-    html = template.render(context)
+    html_string = render_to_string(template_path, context)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
 
-    pisa_status = pisa.CreatePDF(html, dest=response)
+    result = html.write_pdf(presentational_hints=True)
 
-    if pisa_status.err:
-        return HttpResponse("We had some errors <pre>" + html + "</pre>")
-    # return response
-    return render(request, template_path, context)
+    with tempfile.NamedTemporaryFile(delete=True) as output:
+        output.write(result)
+        output.flush()
+
+        output = open(output.name, 'rb')
+        response.write(output.read())
+
+    return response
+
+    #template = get_template(template_path)
+    #html = template.render(context)
+
+
 
 
 def student_view_result(request, user_school_id):
@@ -224,5 +238,6 @@ def student_view_result(request, user_school_id):
     }
     return render(request, "student_templates/student_result.html", context)
 
+
 def payment_status(request, payment_ref):
-    return HttpResponse('successfully, payment reference: ' + payment_ref)
+    return HttpResponse("successfully, payment reference: " + payment_ref)
