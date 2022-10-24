@@ -1113,6 +1113,7 @@ def student_records_doc(request, course_id):
     #return response
 
 def change_class_level(request, user_school_id, class_level_name):
+    student_status_choices = Student.student_status_choices
     class_level = ClassLevel.objects.get(class_level_name=class_level_name)
     class_levels = ClassLevel.objects.all()
     students = class_level.student_set.all()
@@ -1124,41 +1125,111 @@ def change_class_level(request, user_school_id, class_level_name):
         "class_level": class_level,
         "class_levels": class_levels,
         "students": students,
-        'change_class_level': True
+        'change_class_level': True,
+        'student_status_choices': student_status_choices
+    }
+
+    return render(request, "admin_templates/manage_students_template.html", context)
+
+def manage_students_completed(request, user_school_id):
+    students_completed = Student.objects.filter(class_level="", student_status=2)
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "students": students_completed,
+    }
+
+    return render(request, "admin_templates/manage_students_template.html", context)
+
+def manage_students_left(request, user_school_id):
+    students_left = Student.objects.filter(class_level="", student_status=3)
+    context = {
+        'user_first_name': request.session.get('user_first_name'),
+        'user_last_name': request.session.get('user_last_name'),
+        'user_other_names': request.session.get('user_other_names'),
+        "user_school_id": user_school_id,
+        "students": students_left,
     }
 
     return render(request, "admin_templates/manage_students_template.html", context)
 
 
 def change_class_level_save(request, user_school_id):
+    current_session = Session.objects.get(current_session=True)
     if request.method != "POST":
         print("failed")
         return redirect("/" + user_school_id + "/manage_class")
 
     data = json.loads(request.POST["data"])
-    new_class = ClassLevel.objects.get(id=data.get('class_id'))
-    old_students = Student.objects.filter(class_level=new_class)
-    
-    try:
-        with transaction.atomic():
-            for student in old_students:
-                student.isOld = True
-                student.save()
 
-            for student_school_user_id in data.get('students'):
-                new_student = User.objects.get(school_id=student_school_user_id)
-                new_student.student.isOld = False
-                new_student.student.class_level = new_class
-                new_student.save()
+    if data.get('class_id') == 'completed':
+        try:
+            with transaction.atomic():
+                for student_school_user_id in data.get('students'):
+                    new_student = User.objects.get(school_id=student_school_user_id)
+                    new_student.student.isOld = False
+                    new_student.student.student_status = 2
+                    new_student.student.session_completed = str(current_session).split(" ")[0]
+                    new_student.student.class_level = ""
+                    new_student.save()
+            
+            messages.success(request, "Student(s) moved successfully")
+            return redirect("/" + user_school_id + "/completed/" + "/manage_students")
 
-        messages.success(request, "Student(s) moved successfully")
-        return redirect("/" + user_school_id + "/manage_class/" + new_class.class_level_name + "/manage_students")
+        except Exception as e:
+            print('error: ', e)
+            messages.error(request, "Failed to move Student(s)")
+            old_class = ClassLevel.objects.get(id=data.get('students')[0].student.class_level.id)
+            return redirect("/" + user_school_id + "/manage_class/" + old_class.class_level_name + "/manage_students")
 
-    except Exception as e:
-        print('error: ', e)
-        messages.error(request, "Failed to move Student(s)")
-        old_class = ClassLevel.objects.get(id=data.get('students')[0].student.class_level.id)
-        return redirect("/" + user_school_id + "/manage_class/" + old_class.class_level_name + "/manage_students")
+    elif data.get('class_id') == 'left':
+        try:
+            with transaction.atomic():
+                for student_school_user_id in data.get('students'):
+                    new_student = User.objects.get(school_id=student_school_user_id)
+                    new_student.student.isOld = False
+                    new_student.student.student_status = 3
+                    new_student.student.session_completed = ""
+                    new_student.student.class_level = ""
+                    new_student.save()
+            
+            messages.success(request, "Student(s) moved successfully")
+            return redirect("/" + user_school_id + "/left/" + "/manage_students")
+
+        except Exception as e:
+            print('error: ', e)
+            messages.error(request, "Failed to move Student(s)")
+            old_class = ClassLevel.objects.get(id=data.get('students')[0].student.class_level.id)
+            return redirect("/" + user_school_id + "/manage_class/" + old_class.class_level_name + "/manage_students")
+
+    else:
+        new_class = ClassLevel.objects.get(id=data.get('class_id'))
+        old_students = Student.objects.filter(class_level=new_class)
+        
+        try:
+            with transaction.atomic():
+                for student in old_students:
+                    student.isOld = True
+                    student.save()
+
+                for student_school_user_id in data.get('students'):
+                    new_student = User.objects.get(school_id=student_school_user_id)
+                    new_student.student.isOld = False
+                    new_student.student.student_status = 1
+                    new_student.student.session_completed = ""
+                    new_student.student.class_level = new_class
+                    new_student.save()
+
+            messages.success(request, "Student(s) moved successfully")
+            return redirect("/" + user_school_id + "/manage_class/" + new_class.class_level_name + "/manage_students")
+
+        except Exception as e:
+            print('error: ', e)
+            messages.error(request, "Failed to move Student(s)")
+            old_class = ClassLevel.objects.get(id=data.get('students')[0].student.class_level.id)
+            return redirect("/" + user_school_id + "/manage_class/" + old_class.class_level_name + "/manage_students")
 
 
 

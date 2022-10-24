@@ -50,18 +50,18 @@
                                 <div class="input-group input-group-sm" style="width: 150px;">
                                   <form action="" method="post">
                                     {% csrf_token %}
-                                  <input type="search" aria-label="Search" name="searched" class="form-control float-right" placeholder="Search Staff by First Name">
+                                  <input type="search" id="myInput" onkeyup="searchFunction()" aria-label="Search" name="searched" class="form-control float-right" placeholder="Search Staff by First Name">
               
-                                  <div class="input-group-append">
+                                  <!-- <div class="input-group-append">
                                     <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                                  </div>
+                                  </div> -->
                                   </form>
                                 </div>
                               </div>
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body table-responsive p-0">
-                            <table class="table table-hover text-nowrap">
+                            <table class="table table-hover text-nowrap" id="myTable">
                             <thead>
                                 <tr>
                                 <th>School ID</th>
@@ -75,7 +75,7 @@
                                 <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="myUL">
                                 {% for staff in staff_list %}
                                 <tr>
                                 <td>{{ staff.user.school_id }}</td>
@@ -139,6 +139,30 @@ $(document).on('click', '.preDeleteBtn', e => {
 $(document).on('click', '#deleteBtn', e => {
     $("#preDeleteModal").modal('hide')
 })
+
+function searchFunction() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("myInput");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("myTable");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td1 = tr[i].getElementsByTagName("td")[0];
+    td2 = tr[i].getElementsByTagName("td")[1];
+    if (td1||td2) {
+      txtValue1 = td1.textContent || td1.innerText;
+      txtValue2 = td2.textContent || td2.innerText;
+      if ((txtValue1.toUpperCase().indexOf(filter) > -1) || (txtValue2.toUpperCase().indexOf(filter) > -1)) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
 </script>
 
 {% endblock custom_js %}

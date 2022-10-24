@@ -28,9 +28,11 @@
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             {% for other_class_level in class_levels %}
                                 {% if other_class_level != class_level %}
-                                    <a class="dropdown-item dropdownOption" data-class-id={{other_class_level.id}} href="#" data-toggle="modalk" data-target=".bd-move-modal-sml">{{ other_class_level.class_level_name }}</a>
+                                    <a class="dropdown-item dropdownOption" data-class-id={{other_class_level.id}} data-student-status={{student_status_choices.0.0}} href="#" data-toggle="modalk" data-target=".bd-move-modal-sml">{{ other_class_level.class_level_name }}</a>
                                 {% endif %}
                             {% endfor %}
+                            <a class="dropdown-item dropdownOption" data-class-id="completed" data-student-status={{student_status_choices.1.0}} href="#" data-toggle="modalk" data-target=".bd-move-modal-sml">Completed</a>
+                            <a class="dropdown-item dropdownOption" data-class-id="left" data-student-status={{student_status_choices.2.0}} href="#" data-toggle="modalk" data-target=".bd-move-modal-sml">Left</a>
                         </div>
                     </div>
                 {% else %}

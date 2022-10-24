@@ -53,7 +53,6 @@ class Staff(models.Model):
     def __str__(self):
         return self.user.school_id + " " +  self.user.last_name +  self.user.first_name
 
-
 class Session(models.Model):
     id = models.AutoField(primary_key=True)
     session_start = models.PositiveIntegerField()
@@ -63,6 +62,13 @@ class Session(models.Model):
     def __str__(self) -> str:
         return '{}/{} session'.format(self.session_start ,self.session_end)
 
+class Term(models.Model):
+    term_data = ((1,"Term 1"), (2,"Term 2"), (3, "Term 3"))
+    term = models.PositiveIntegerField(choices=term_data, default=1)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.term
 
 class ClassLevel(models.Model):
     id = models.AutoField(primary_key=True)
@@ -87,7 +93,7 @@ class Subject(models.Model):
         return self.subject_name + " " + self.class_level.class_level_name
 
 
-student_status_choices = ((1,"Ongoing"),(2,"Graduated"), (3,"Left"))
+
 class Student(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete = models.CASCADE)
@@ -97,6 +103,7 @@ class Student(models.Model):
     session_completed = models.CharField(max_length=200, blank=True, null=True)
     #gender = models.CharField(max_length=50)
     dob=models.DateField(null=True,blank=True)
+    student_status_choices = ((1,"Ongoing"),(2,"Graduated"), (3,"Left"))
     student_status = models.PositiveIntegerField(choices=student_status_choices, default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -171,6 +178,7 @@ class StudentAssessment(models.Model):
     id=models.AutoField(primary_key=True)
     student=models.ForeignKey(Student,on_delete=models.CASCADE)
     subject=models.ForeignKey(Subject,on_delete=models.CASCADE)
+    term=models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
     # assessment_choices = (
     #     (1, 'assignment'),
     #     (2, 'test'),

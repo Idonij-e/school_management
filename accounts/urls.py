@@ -68,6 +68,8 @@ urlpatterns = [
     path('<user_school_id>/payment_history/<student_school_id>', views_admin.view_fee_payments, name="view_fee_payments"),
     path('<user_school_id>/manage_class/<class_level_name>/change_class', views_admin.change_class_level, name="change_students_class"),
     path('<user_school_id>/manage_class/change_class_level', views_admin.change_class_level_save, name="change_students_class_save"),
+    path('<user_school_id>/completed/manage_students', views_admin.manage_students_completed, name="manage_students_completed"),
+    path('<user_school_id>/left/manage_students', views_admin.manage_students_left, name="manage_students_completed"),
 
 
 
