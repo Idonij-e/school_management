@@ -83,6 +83,29 @@
                                 </td>
                                 </tr>
                                 {% endfor %}
+                                <tr>
+                                    <td>Completed</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <a href="{% url 'manage_students_completed' user_school_id %}" class="btn btn-info">Students</a>
+                                        {% with completed="completed" %}
+                                            <a href="{% url 'change_students_class' user_school_id completed %}" class="btn btn-info">Change Students Class</a>
+                                        {% endwith %}
+                            
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Left</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <a href="{% url 'manage_students_left' user_school_id %}" class="btn btn-info">Students</a>
+                                        {% with left="left" %}
+                                            <a href="{% url 'change_students_class' user_school_id left %}" class="btn btn-info">Change Students Class</a>
+                                        {% endwith %}
+                                    </td>
+                                </tr>
                                 
                             </tbody>
                             </table>

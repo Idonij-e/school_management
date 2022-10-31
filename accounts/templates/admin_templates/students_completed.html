@@ -1,15 +1,15 @@
 {% extends 'admin_templates/base_template.html' %}
 
 {% block page_title %}
-    {% if not class_level %}
+    <!-- {% if not class_level %}
         Manage Student  
     {% endif %}
-    
-    {% if class_level %}
+     -->
+    <!-- {% if class_level %}
         <a href="{% url 'manage_class' user_school_id %}">Manage Class</a>  >  <a href="{% url 'manage_class_students' user_school_id class_level.class_level_name %}">{{ class_level.class_level_name.upper }} Students</a>
-    {% endif %}
+    {% endif %} -->
 
-
+Manage Completed
 {% endblock page_title %}
 
 {% block main_content %}
@@ -31,26 +31,17 @@
                                     <a class="dropdown-item dropdownOption" data-class-id={{other_class_level.id}} href="#" data-toggle="modalk" data-target=".bd-move-modal-sml">{{ other_class_level.class_level_name }}</a>
                                 {% endif %}
                             {% endfor %}
-                            <a class="dropdown-item dropdownOption" data-class-id="completed" href="#" data-toggle="modalk" data-target=".bd-move-modal-sml">Completed</a>
-                            <a class="dropdown-item dropdownOption" data-class-id="left" href="#" data-toggle="modalk" data-target=".bd-move-modal-sml">Left</a>
+                        
                         </div>
                     </div>
                 {% else %}
                     <div>
-                        {% if not class_level %}
+                      
                             <a class="btn btn-primary" href="{% url 'add_student' user_school_id %}" role="button">+ Add Student</a> <br/>&nbsp;
-                        {% endif %}
-        
-                        {% if class_level %}
-                            <a class="btn btn-primary" href="{% url 'manage_class_add_student' user_school_id class_level.class_level_name %}" role="button">+ Add Student to {{ class_level.class_level_name.upper }} Class</a> <br/>&nbsp;
-                        {% endif %}
+                     
                     </div>
                 
-                    <div>
-                    {% if class_level %}
-                        <a class="btn btn-primary" href="{% url 'student_records_doc' class_level.id %}" role="button">Download Student List</a> <br/>&nbsp;
-                    {% endif %} 
-                    </div>
+                  
                 {% endif %}
 
 
@@ -93,7 +84,7 @@
                     <!-- general form elements -->
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">{% if class_level %} {{ class_level.class_level_name }} {% endif %} Student Details</h3>
+                            <h3 class="card-title">Student Details</h3>
 
                             <div class="card-tools">
                                 <div class="input-group input-group-sm" style="width: 150px;">
@@ -139,8 +130,9 @@
                                     <th>Address</th>
                                     <th>DOB</th>
                                     <th>Gender</th>
+                                    <th>Session Completed</th>
                                     <!-- <th>Profile Pic</th> -->
-                                    <th>Class</th>
+                                    <!-- <th>Class</th> -->
                                     <!-- <th>Last Login</th> -->
                                     <th>Date Joined</th>
                                     {% if not change_class_level %}
@@ -170,16 +162,9 @@
                                         <td>{{ student.address }}</td>
                                         <td>{{ student.dob }}</td>
                                         <td>{{ student.user.get_gender_display }}</td>
+                                        <td>{{ student.session_completed }}</td>
                                         <!-- <td> <img src="{{ student.user.profile_pic }}" style="width: 100px;" /> </td> -->
-                                        {% if student.class_level.class_level_name == "" %} 
-                                            {% if student.student_status == 2 %}
-                                            <td>Completed</td>
-                                            {% else %}
-                                            <td>Left</td>
-                                            {% endif %}
-                                        {% else %}
-                                            <td>{{ student.class_level.class_level_name }}</td>
-                                        {% endif %}
+                                        <!-- <td>{{ student.class_level.class_level_name }}</td> -->
                                         <!-- <td>{{ student.user.last_login }}</td> -->
                                         <td>{{ student.user.date_joined }}</td>
                                         {% if not change_class_level %}
@@ -281,8 +266,8 @@
                         studentArray.push(selectedStudentsEl[_].dataset.studentUserSchoolId)
                     }
                 }
+
                 move_students(JSON.stringify({class_id: classId, students: studentArray}))
-                $('#preMoveModal').modal('hide')
             })
 
             // csrf token setup

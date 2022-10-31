@@ -100,6 +100,7 @@ class Student(models.Model):
     address = models.TextField(null=True,blank=True)
     class_level = models.ForeignKey(ClassLevel, on_delete=models.DO_NOTHING, null=True, blank=True)
     isOld = models.BooleanField(default=False)
+    previous_class = models.CharField(max_length=100, blank=True, null=True)
     session_completed = models.CharField(max_length=200, blank=True, null=True)
     #gender = models.CharField(max_length=50)
     dob=models.DateField(null=True,blank=True)
