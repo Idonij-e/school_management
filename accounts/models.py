@@ -65,10 +65,11 @@ class Session(models.Model):
 class Term(models.Model):
     term_data = ((1,"Term 1"), (2,"Term 2"), (3, "Term 3"))
     term = models.PositiveIntegerField(choices=term_data, default=1)
+    current_term = models.BooleanField(default=False)
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return self.term
+        return str(self.term_data[self.term-1][1])
 
 class ClassLevel(models.Model):
     id = models.AutoField(primary_key=True)

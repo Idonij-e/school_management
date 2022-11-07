@@ -65,6 +65,15 @@ Current Session
                                 </select>
                             </div>
 
+                            <div class="form-group">
+                                <label>Select Current Term</label> 
+                                <select class="form-control" name="term">
+                                    {% for term in terms %}
+                                        <option value="{{ term.0 }}">{{ term.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
                         </div>
                         <!-- /.card-body -->
 

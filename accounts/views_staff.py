@@ -1,4 +1,5 @@
 import json
+from multiprocessing import context
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -15,6 +16,7 @@ from .models import (
     Session,
     Subject,
     StudentAssessment,
+    Term
 )
 
 
@@ -213,11 +215,44 @@ def view_subjects(request, user_school_id):
 
     return render(request, "staff_templates/staff_subjects.html", context)
 
+# def select_assessment_term(request, user_school_id, subject_id, assessment_action):
+#     subject = Subject.objects.get(id=subject_id)
+#     terms = Term.objects.all()
+#     sessions = Session.objects.all()
+#     if assessment_action == "staff_add_result":
+#         staff_add_result = True
+#         context = {
+#         "user_school_id": user_school_id,
+#         "user_first_name": request.session.get("user_first_name"),
+#         "user_last_name": request.session.get("user_last_name"),
+#         "user_other_names": request.session.get("user_other_names"),
+#         "subject": subject,
+#         "terms": terms,
+#         "sessions": sessions,
+#         "staff_add_result": staff_add_result
+#         }
+
+#         return render(request, "staff_templates/select_assessment_term.html", context)
+
+#     if assessment_action == "staff_final_assessment":
+#         staff_add_result = False
+#         context = {
+#         "user_school_id": user_school_id,
+#         "user_first_name": request.session.get("user_first_name"),
+#         "user_last_name": request.session.get("user_last_name"),
+#         "user_other_names": request.session.get("user_other_names"),
+#         "subject": subject,
+#         "terms": terms,
+#         "sessions": sessions,
+#         "staff_add_result": staff_add_result
+#         }
+#         return render(request, "staff_templates/select_assessment_term.html", context)
 
 def staff_add_result(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     assessments = StudentAssessment.objects.filter(subject=subject_id)
     students = subject.class_level.student_set.all()
+    sessions = Session.objects.all()
     context = {
         "user_school_id": user_school_id,
         "user_first_name": request.session.get("user_first_name"),
@@ -227,6 +262,7 @@ def staff_add_result(request, user_school_id, subject_id):
         "students": students,
         "assessment_choices": StudentAssessment.assessment_choices,
         'assessments': assessments,
+        "sessions":sessions,
     }
 
     return render(request, "staff_templates/staff_add_result.html", context)

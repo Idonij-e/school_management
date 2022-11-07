@@ -2,6 +2,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 
 from accounts.models import (
     User,
@@ -9,6 +10,7 @@ from accounts.models import (
     Staff,
     Student,
     Session,
+    Term,
     ClassLevel,
     Subject,
     Fee,
@@ -776,15 +778,29 @@ def delete_subject(request, user_school_id, subject_id):
 
 def manage_session(request, user_school_id):
 
-    sessions = Session.objects.all()
-    context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
-        "sessions": sessions,
-    }
-    return render(request, "admin_templates/manage_session_template.html", context)
+    try:
+        sessions = Session.objects.all()
+        current_term = Term.objects.get(current_term=True)
+        context = {
+            "user_first_name": request.session.get("user_first_name"),
+            "user_last_name": request.session.get("user_last_name"),
+            "user_other_names": request.session.get("user_other_names"),
+            "user_school_id": user_school_id,
+            "sessions": sessions,
+            "current_term": current_term,
+        }
+        return render(request, "admin_templates/manage_session_template.html", context)
+
+    except Term.DoesNotExist:
+        sessions = Session.objects.all()
+        context = {
+            "user_first_name": request.session.get("user_first_name"),
+            "user_last_name": request.session.get("user_last_name"),
+            "user_other_names": request.session.get("user_other_names"),
+            "user_school_id": user_school_id,
+            "sessions": sessions,
+        }
+        return render(request, "admin_templates/manage_session_template.html", context)
 
 
 def add_session(request, user_school_id):
@@ -810,6 +826,12 @@ def add_session_save(request, user_school_id):
         try:
             session = Session(session_start=session_start, session_end=session_end)
             session.save()
+            term_one = Term(session=session, term=1)
+            term_one.save()
+            term_two = Term(session=session, term=2)
+            term_two.save()
+            term_three = Term(session=session, term=3)
+            term_three.save()
             messages.success(request, "Session added Successfully!")
 
         except:
@@ -833,6 +855,7 @@ def select_session(request, user_school_id):
         "user_other_names": request.session.get("user_other_names"),
         "user_school_id": user_school_id,
         "sessions": sessions,
+        "terms": Term.term_data,
     }
     return render(request, "admin_templates/current_session.html", context)
 
@@ -844,20 +867,29 @@ def select_session_save(request, user_school_id):
         return redirect("/" + user_school_id + "/current_session")
     else:
         session_id = request.POST.get("session")
+        term_value = request.POST.get("term")
         session = Session.objects.get(id=session_id)
+        term = session.term_set.get(term=int(term_value))
 
         try:
             prev_current_session = Session.objects.get(current_session=True)
             prev_current_session.current_session = False
-            session.current_session = True
             prev_current_session.save()
+            prev_current_term = Term.objects.get(current_term=True)
+            prev_current_term.current_term = False
+            prev_current_term.save()
+            session.current_session = True
             session.save()
+            term.current_term = True
+            term.save()
             messages.success(request, "Current Session updated Successfully!")
 
-        # except Session.DoesNotExist:
-        #     session.current_session = True
-        #     session.save()
-        #     messages.success(request, "Current Session updated Successfully!")
+        except ObjectDoesNotExist:
+            session.current_session = True
+            session.save()
+            term.current_term = True
+            term.save()
+            messages.success(request, "Current Session updated Successfully!")
 
         except:
             messages.error(request, "Failed to Create Current Session!")

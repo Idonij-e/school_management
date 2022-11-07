@@ -47,9 +47,47 @@
     </div>
     {% endif %}
 
+
     <div class="row">
       <div class="col-md-12">
-        <div class="mb-5">
+        <div class="mb-5 card p-2">
+          <div class="input-group mb-2">
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="assessment_type"
+                >Select Session</label
+              >
+            </div>
+            <select
+              class="custom-select"
+              name="assessment_type"
+              id="assessment_type"
+            >
+              {% for session in sessions %}
+              <option {% if session.current_session %} selected {% endif %} value="{{ session.id }}">
+                {{ session }}
+              </option>
+              {% endfor %}
+            </select>
+
+            <div class="input-group-prepend ml-3">
+              <label class="input-group-text" for="assessment_type"
+              >Select Term</label
+            >            
+            </div>
+            <select
+              class="custom-select"
+              name="assessment_type"
+              id="assessment_type"
+            >
+            <option value="" selected disabled>choose term</option>
+              {% for assessment in assessment_choices %}
+              <option value="{{ assessment.0 }}">
+                {{ assessment.1.title }}
+              </option>
+              {% endfor %}
+            </select>
+            <br />&nbsp;
+          </div>
           <div class="input-group">
             <div class="input-group-prepend">
               <label class="input-group-text" for="assessment_type"

@@ -17,10 +17,17 @@
                     <div>
                         {% for session in sessions %}
                             {% if session.current_session == True %}
-                                <h4>{{ session }}</h4>
+                                <h4>
+                                    {{ session }} 
+                                    {% if current_term %}
+                                        {{ current_term }}
+                                    {% endif %}
+                                </h4>                        
+                             
+                        </div>
                             {% endif %}
                         {% endfor %}
-                    </div>
+
                     <a class="btn btn-secondary" href="{% url 'select_session' user_school_id%}" role="button">Select Current Session</a> <br/>&nbsp;
                 </div>
     
