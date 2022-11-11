@@ -5,6 +5,7 @@ from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
 from accounts.models import (
+    StudentAssessment,
     User,
     Administrator,
     Staff,
@@ -17,7 +18,7 @@ from accounts.models import (
     Payment,
 )
 from accounts.forms import AddStudentForm, EditStudentForm, FeeForm
-from accounts.utils import generate_school_id
+from accounts.utils import current_term, generate_school_id
 
 import docx
 import json
@@ -322,6 +323,12 @@ def add_student_save(request, user_school_id):
     else:
         form = AddStudentForm(request.POST, request.FILES)
 
+        try :
+            class_level_id = request.POST['class_level_id']
+        except KeyError:
+            messages.error(request, "Select a Class To Add Student!") 
+            return redirect("/" + user_school_id + "/add_student")
+
         if form.is_valid():
             first_name = form.cleaned_data["first_name"]
             last_name = form.cleaned_data["last_name"]
@@ -340,18 +347,28 @@ def add_student_save(request, user_school_id):
             username = generate_school_id()
             profile_pic = form.cleaned_data["profile_pic"]
 
+
             try:
+                current_term = Term.objects.get(current_term=True)
+                
+                class_level = ClassLevel.objects.get(id=class_level_id)
+
+                terms_under_current_sessions = current_term.session.term_set.all()
+
+                assessments_in_class_level = class_level.student_set.all()[0].studentassessment_set.filter(term=current_term)
+                
                 user = User.objects.create_user(
-                    username=username,
-                    password=password,
-                    email=email,
-                    first_name=first_name,
-                    last_name=last_name,
-                    other_names=other_names,
-                    user_type=3,
-                    phone_number=phone_number,
-                    gender=gender,
+                username=username,
+                password=password,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                other_names=other_names,
+                user_type=3,
+                phone_number=phone_number,
+                gender=gender,
                 )
+
 
                 if profile_pic != None or profile_pic != "":
                     user.profile_pic = profile_pic
@@ -360,15 +377,21 @@ def add_student_save(request, user_school_id):
                 user.student.address = dob
                 user.student.phone_number = phone_number
 
-                class_level = ClassLevel.objects.get(id=class_level_id)
+
                 user.student.class_level = class_level
 
-                user.save()
+                user.student.term_enrolled = current_term
 
+                user.save()
                 messages.success(request, "Student Added Successfully!")
+            
+            except Term.DoesNotExist:
+                print('term except')
+                messages.error(request, "Select a Current Session and Term To Add Student!") 
 
             except Exception as E:
                 print(E)
+                print('general except')
                 messages.error(request, "Failed to Add Student!")
 
             finally:

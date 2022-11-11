@@ -107,6 +107,7 @@ class Student(models.Model):
     dob=models.DateField(null=True,blank=True)
     student_status_choices = ((1,"Ongoing"),(2,"Graduated"), (3,"Left"))
     student_status = models.PositiveIntegerField(choices=student_status_choices, default=1)
+    term_enrolled =  models.ForeignKey(Term, on_delete=models.DO_NOTHING, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -215,7 +216,7 @@ def create_user_profile(sender, instance, created, **kwargs):
         if instance.user_type == 2:
             Staff.objects.create(user=instance)
         if instance.user_type == 3:
-            Student.objects.create(user=instance, class_level=ClassLevel.objects.get(id=1))
+            Student.objects.create(user=instance)
     
 
 @receiver(post_save, sender=User)

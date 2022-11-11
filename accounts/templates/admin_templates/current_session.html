@@ -60,7 +60,7 @@ Current Session
                                 <label>Select Current Session </label>
                                 <select class="form-control" name="session">
                                     {% for session in sessions %}
-                                        <option value="{{ session.id }}">{{ session.session_start }}/{{ session.session_end }} Session</option>
+                                        <option value="{{ session.id }}" {% if session.current_session %} default {%  endif %}>{{ session.session_start }}/{{ session.session_end }} Session</option>
                                     {% endfor %}
                                 </select>
                             </div>
