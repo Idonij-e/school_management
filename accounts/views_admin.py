@@ -23,6 +23,7 @@ from accounts.utils import current_term, generate_school_id
 import docx
 import json
 from io import StringIO
+from copy import deepcopy
 
 
 def home(request, **kwargs):
@@ -392,7 +393,7 @@ def add_student_save(request, user_school_id):
                         try:
                             assessments = old_student_instance.studentassessment_set.filter(term=term)
                             assessment_list.append(assessments)
-                            
+
                         except StudentAssessment.DoesNotExist:
                             pass
 
