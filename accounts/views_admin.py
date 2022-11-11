@@ -23,6 +23,7 @@ from accounts.utils import current_term, generate_school_id
 import docx
 import json
 from io import StringIO
+from copy import deepcopy
 
 
 def home(request, **kwargs):
@@ -353,9 +354,7 @@ def add_student_save(request, user_school_id):
                 
                 class_level = ClassLevel.objects.get(id=class_level_id)
 
-                terms_under_current_sessions = current_term.session.term_set.all()
-
-                assessments_in_class_level = class_level.student_set.all()[0].studentassessment_set.filter(term=current_term)
+                
                 
                 user = User.objects.create_user(
                 username=username,
@@ -384,6 +383,31 @@ def add_student_save(request, user_school_id):
 
                 user.save()
                 messages.success(request, "Student Added Successfully!")
+
+                
+                terms_in_current_session = current_term.session_set.all()
+                assessment_list = []
+                try:
+                    old_student_instance = class_level.student_set.all()[0]
+                    for term in terms_in_current_session:
+                        try:
+                            assessments = old_student_instance.studentassessment_set.filter(term=term)
+                            assessment_list.append(assessments)
+
+                        except StudentAssessment.DoesNotExist:
+                            pass
+
+                    if assessment_list != []:
+                        for term_assessments in assessment_list:
+                            for assessment in term_assessments:
+                                new_assessment_instance = deepcopy(assessment)
+                                new_assessment_instance.id = None
+                                new_assessment_instance.student = user.student
+                                new_assessment_instance.score = 0
+                                new_assessment_instance.save()
+
+                except Student.DoesNotExist:
+                    pass
             
             except Term.DoesNotExist:
                 print('term except')
