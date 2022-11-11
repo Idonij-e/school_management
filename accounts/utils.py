@@ -3,6 +3,7 @@ from ntpath import join
 from sqlite3 import OperationalError as SQLOperationalError
 from types import NoneType
 from django.db.utils import OperationalError as DjangoOperationalError
+from django.contrib import messages
 import os
 
 from main.settings import BASE_DIR
@@ -29,3 +30,11 @@ def save_user_photo(instance, filename):
     # file_extension = filename.split('.')[-1]
     return "images/" + instance.school_id
 
+def current_term(request, url_path):
+    from .models import Term
+    try:
+        current_term = Term.objects.get(current_term=True)
+        return current_term
+    except Term.DoesNotExist:
+        messages.error(request, "Invalid Method!")
+        return redirect("/" + user_school_id + "/staff_profile")
