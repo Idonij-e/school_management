@@ -380,34 +380,35 @@ def add_student_save(request, user_school_id):
                 user.student.class_level = class_level
 
                 user.student.term_enrolled = current_term
+                user.student.current_session = current_term.session
 
                 user.save()
                 messages.success(request, "Student Added Successfully!")
 
                 
-                terms_in_current_session = current_term.session_set.all()
-                assessment_list = []
-                try:
-                    old_student_instance = class_level.student_set.all()[0]
-                    for term in terms_in_current_session:
-                        try:
-                            assessments = old_student_instance.studentassessment_set.filter(term=term)
-                            assessment_list.append(assessments)
+                # terms_in_current_session = current_term.session 
+                # assessment_list = []
+                # try:
+                #     old_student_instance = class_level.student_set.all()[0]
+                #     for term in terms_in_current_session:
+                #         try:
+                #             assessments = old_student_instance.studentassessment_set.filter(term=term)
+                #             assessment_list.append(assessments)
 
-                        except StudentAssessment.DoesNotExist:
-                            pass
+                #         except StudentAssessment.DoesNotExist:
+                #             pass
 
-                    if assessment_list != []:
-                        for term_assessments in assessment_list:
-                            for assessment in term_assessments:
-                                new_assessment_instance = deepcopy(assessment)
-                                new_assessment_instance.id = None
-                                new_assessment_instance.student = user.student
-                                new_assessment_instance.score = 0
-                                new_assessment_instance.save()
+                #     if assessment_list != []:
+                #         for term_assessments in assessment_list:
+                #             for assessment in term_assessments:
+                #                 new_assessment_instance = deepcopy(assessment)
+                #                 new_assessment_instance.id = None
+                #                 new_assessment_instance.student = user.student
+                #                 new_assessment_instance.score = 0
+                #                 new_assessment_instance.save()
 
-                except Student.DoesNotExist:
-                    pass
+                # except Student.DoesNotExist:
+                #     pass
             
             except Term.DoesNotExist:
                 messages.error(request, "Select a Current Session and Term To Add Student!") 
@@ -511,24 +512,13 @@ def edit_student_save(request, user_school_id):
                     if previous_class_level != class_level:
 
                         current_term = Term.objects.get(current_term=True)
-                        terms_in_current_session = current_term.session_set.all()
+                        terms_in_current_session = current_term.session.term_set.all()
                         assessment_list = []
                         
-                        edited_student = student_model
                         for term in terms_in_current_session:
-                            try:
-                                assessments = edited_student.studentassessment_set.filter(term=term)
-                                assessment_list.append(assessments)
-
-                            except StudentAssessment.DoesNotExist:
-                                pass
-
-                        if assessment_list != []:
-                            for term_assessments in assessment_list:
-                                for assessment in term_assessments:
-                                    assessment.delete()
-
-
+                            assessments = student_model.studentassessment_set.filter(term=term)
+                            assessment_list.append(assessments)
+                            StudentAssessment.objects.filter(student=student_model, term=term).delete()
 
 
                 student_model.class_level = class_level
@@ -540,27 +530,20 @@ def edit_student_save(request, user_school_id):
                 # if previous_class_level != None or previous_class_level != "":
                 if previous_class_level != class_level:
                     current_term = Term.objects.get(current_term=True)
-                    terms_in_current_session = current_term.session_set.all()
-                    assessment_list = []
+                    terms_in_current_session = current_term.session.term_set.all()
                     
                     try:
                         old_student_instance = class_level.student_set.all()[0]
                         for term in terms_in_current_session:
-                            try:
-                                assessments = old_student_instance.studentassessment_set.filter(term=term)
-                                assessment_list.append(assessments)
-
-                            except StudentAssessment.DoesNotExist:
-                                pass
-
-                        if assessment_list != []:
-                            for term_assessments in assessment_list:
-                                for assessment in term_assessments:
+                            assessments = old_student_instance.studentassessment_set.filter(term=term)
+                            if assessments.exists():
+                                for assessment in assessments:
                                     new_assessment_instance = deepcopy(assessment)
-                                    new_assessment_instance.id = None1
+                                    new_assessment_instance.id = None
                                     new_assessment_instance.student = user.student
                                     new_assessment_instance.score = 0
                                     new_assessment_instance.save()
+                  
 
                     except Student.DoesNotExist:
                         pass
@@ -1410,7 +1393,7 @@ def change_class_level_save(request, user_school_id):
 
     try:
         current_term = Term.objects.get(current_term=True)
-        terms_in_current_session = current_term.session_set.all()
+        # terms_in_current_session = current_term.session_set.all()
 
         with transaction.atomic():
             for student in old_students:
@@ -1433,13 +1416,13 @@ def change_class_level_save(request, user_school_id):
 
                     assessment_list = []
 
-                    for term in terms_in_current_session:
-                        try:
-                            assessments = new_student.studentassessment_set.filter(term=term)
-                            assessment_list.append(assessments)
+                    # for term in terms_in_current_session:
+                    #     try:
+                    #         assessments = new_student.studentassessment_set.filter(term=term)
+                    #         assessment_list.append(assessments)
 
-                        except StudentAssessment.DoesNotExist:
-                            pass
+                    #     except StudentAssessment.DoesNotExist:
+                    #         pass
 
                     if assessment_list != []:
                         for term_assessments in assessment_list:
@@ -1454,13 +1437,13 @@ def change_class_level_save(request, user_school_id):
                 assessment_list = []
                 try:
                     old_student_instance = new_class.student_set.all()[0]
-                    for term in terms_in_current_session:
-                        try:
-                            assessments = old_student_instance.studentassessment_set.filter(term=term)
-                            assessment_list.append(assessments)
+                    # for term in terms_in_current_session:
+                    #     try:
+                    #         assessments = old_student_instance.studentassessment_set.filter(term=term)
+                    #         assessment_list.append(assessments)
 
-                        except StudentAssessment.DoesNotExist:
-                            pass
+                    #     except StudentAssessment.DoesNotExist:
+                    #         pass
 
                     if assessment_list != []:
                         for term_assessments in assessment_list:

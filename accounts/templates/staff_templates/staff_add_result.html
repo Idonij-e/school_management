@@ -59,11 +59,11 @@
             </div>
             <select
               class="custom-select"
-              name="assessment_type"
-              id="assessment_type"
+              name="session"
+              id="session"
             >
               {% for session in sessions %}
-              <option {% if session.current_session %} selected {% endif %} value="{{ session.id }}">
+              <option {% if session.id == current_session.id %} selected {% endif %} value="{{ session.id }}">
                 {{ session }}
               </option>
               {% endfor %}
@@ -76,13 +76,12 @@
             </div>
             <select
               class="custom-select"
-              name="assessment_type"
-              id="assessment_type"
+              name="term"
+              id="term"
             >
-            <option value="" selected disabled>choose term</option>
-              {% for assessment in assessment_choices %}
-              <option value="{{ assessment.0 }}">
-                {{ assessment.1.title }}
+              {% for term in current_session.term_set.all %}
+              <option value="{{ term.id }}" {% if term.id == current_term %} selected {% endif %}>
+                {{ term }}
               </option>
               {% endfor %}
             </select>
@@ -190,7 +189,7 @@
                   <tr>
                     <td>{{ student.user.school_id }}</td>
                     <td>{{ student.user.last_name }} {{ student.user.first_name }} {{ student.user.other_names }}</td>
-                    {% for assessment in student|student_assessments_filter:subject.id %}
+                    {% for assessment in student|student_assessments_filter:subject_term_id %}
                     <td class="text-center">
                       <span data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
                         {{ assessment.score }}
@@ -243,9 +242,11 @@
 {% block custom_js %}
 
 <script>
+  // state store for page
+  let store = {}
 
   // add new, edited, and deleted data attributes to table elements
-  const tempTable = $('table')[0]
+  let tempTable = $('table')[0]
   tempTable.dataset.newAssessments = JSON.stringify([])
   tempTable.dataset.editedAssessments = JSON.stringify([])
   tempTable.dataset.deletedAssessments = JSON.stringify([])
@@ -264,27 +265,27 @@
 
 
     // validate assessment type
-    const assessmentTypeEl= document.getElementById('assessment_type')
+    let assessmentTypeEl= document.getElementById('assessment_type')
     if (assessmentTypeEl.value.length === 0) {
       assessmentTypeEl.setCustomValidity("Choose an assessment type")
       assessmentTypeEl.reportValidity()
       throw new Error(`Choose an assessment type`)
     }
 
-    const assessmentDescInput = document.getElementById('assessment_desc')
+    let assessmentDescInput = document.getElementById('assessment_desc')
     checkEmptyOrUnique(assessmentDescInput)
 
 
     // create title th element
-    const titleEl = document.createElement("th");
+    let titleEl = document.createElement("th");
     // create text span element
-    const textSpan = document.createElement('span')
+    let textSpan = document.createElement('span')
     textSpan.setAttribute('class', 'assessmentTitle')
     textSpan.dataset.assessmentTitle = document.getElementById('assessment_desc').value.trim()
     // create icons span element
-    const iconSpan = document.createElement('span')
+    let iconSpan = document.createElement('span')
     // delete icon element
-    const deleteIconBtn = `<i class="fas fa-trash text-danger ml-2 preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm"></i>`
+    let deleteIconBtn = `<i class="fas fa-trash text-danger ml-2 preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm"></i>`
 
     // append text element and icon element to title element
     $(iconSpan).append(deleteIconBtn)
@@ -293,24 +294,24 @@
     titleEl.appendChild(iconSpan)
 
     // append title element to thead element
-    const theadTrEl = document
+    let theadTrEl = document
       .getElementsByTagName("thead")[0]
       .getElementsByTagName("tr")[0];
     theadTrEl.appendChild(titleEl);
 
     // get rows in table body element tbody>tr
-    const tbodyTrEl = document
+    let tbodyTrEl = document
       .getElementsByTagName("tbody")[0]
       .getElementsByTagName("tr");
 
     // loop through rows
     for (let i of Object.keys(tbodyTrEl)) {
       // create td element
-      const tdEl = document.createElement("td");
+      let tdEl = document.createElement("td");
       tdEl.classList.add('text-center')
 
       // create input element for score
-      const inputEl = document.createElement("input");
+      let inputEl = document.createElement("input");
       inputEl.setAttribute("name", "score");
       inputEl.setAttribute("maxlength", 7);
       inputEl.setAttribute("value", 0);
@@ -325,10 +326,10 @@
     }
 
     // get table element
-    const tableEl = $('table')[0]
-    // get new-assessments data attribute value
-    // push new assessment title to array
+    let tableEl = $('table')[0]
+    // get current data attribute values from table 
     let newAssessmentArray = JSON.parse(tableEl.dataset.newAssessments)
+    // push new changes to assessment array 
     newAssessmentArray.push(textSpan.innerText.trim())
     // set new-assessments data attribute to newAssessmentArray
     tableEl.dataset.newAssessments = JSON.stringify(newAssessmentArray)
@@ -353,11 +354,11 @@
   $('.editBtn').on('click', function(e) {
 
     // get title element
-    const titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
-    const assessmentTitle = titleEl.dataset.assessmentTitle
+    let titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
+    let assessmentTitle = titleEl.dataset.assessmentTitle
 
     // create title input element
-    const inputEl = document.createElement('input')
+    let inputEl = document.createElement('input')
     inputEl.dataset.assessmentTitle = assessmentTitle
     $(inputEl).attr('value', titleEl.innerText.trim())
     $(inputEl).attr('class', "assessmentTitle")
@@ -369,11 +370,11 @@
     // remove edit button element
     $(e.target).remove()
 
-    const column = $(`[data-assessment-title="${assessmentTitle}"]`)
+    let column = $(`[data-assessment-title="${assessmentTitle}"]`)
     for (let _=1; _<column.length; _++) {
 
       // create score input element
-      const inputEl = document.createElement('input')
+      let inputEl = document.createElement('input')
       inputEl.style.width = '8ch'
       inputEl.value = column[_].innerText.trim()
       inputEl.dataset.assessmentId = column[_].dataset.assessmentId
@@ -385,7 +386,7 @@
     }
 
     // get table element
-    const tableEl = $('table')[0]
+    let tableEl = $('table')[0]
     // get edited data attribute value
     // push newly edited assessment title to array
     let editedAssessmentArray = JSON.parse(tableEl.dataset.editedAssessments)
@@ -403,17 +404,17 @@
   */
  $(document).on('click', '.preDeleteBtn', e => {
   // get element title from data attribute
-  const titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
-  const title = titleEl.dataset.assessmentTitle.trim()
+  let titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
+  let title = titleEl.dataset.assessmentTitle.trim()
 
 
   // set modal message
-  const modalMsgEl = document.getElementById('preDeleteModalContent')
+  let modalMsgEl = document.getElementById('preDeleteModalContent')
   modalMsgEl.innerText = `Are you sure you want to delete ${title}`
 
 
   // set title data attribute of delete button
-  const deleteBtnEl = document.getElementById('deleteBtn')
+  let deleteBtnEl = document.getElementById('deleteBtn')
   deleteBtnEl.dataset.modalAssessmentTitle = title
  })
 
@@ -428,10 +429,10 @@
   */ 
   $(document).on('click', '#deleteBtn', e => {
     // get assessment title 
-    const title = e.target.dataset.modalAssessmentTitle.trim()
+    let title = e.target.dataset.modalAssessmentTitle.trim()
 
     //get table
-    const tableEl = $('table')[0]
+    let tableEl = $('table')[0]
     let editedAssessmentArray = JSON.parse(tableEl.dataset.editedAssessments)
     let newAsssessmentArray = JSON.parse(tableEl.dataset.newAssessments)
 
@@ -441,9 +442,9 @@
     deletedAssessmentArray.push(title)
 
     // remove deleted title from edited assessment array if it is edited
-    const filteredEditedAssessmentArray = editedAssessmentArray.filter(ele=>ele !== title)
+    let filteredEditedAssessmentArray = editedAssessmentArray.filter(ele=>ele !== title)
     // remove deleted title from new assessment array if it is new
-    const filteredNewAssessmentArray = newAsssessmentArray.filter(ele => {
+    let filteredNewAssessmentArray = newAsssessmentArray.filter(ele => {
       // remove title added to deletedAssessmentArray 
       if (ele === title) {
         deletedAssessmentArray.splice(deletedAssessmentArray.findIndex(s => s === title), 1)
@@ -458,7 +459,7 @@
 
     // get elements matching data attribute title
     // and remove them from the DOM
-    const matchedElements = $(`[data-assessment-title="${title}"`)
+    let matchedElements = $(`[data-assessment-title="${title}"`)
     $(matchedElements).each( (index) => {
       $(matchedElements[index].parentElement).remove()
     })
@@ -472,6 +473,262 @@
 
 
 
+  /*
+  returns stringified JSON object 
+    { subject_id: "", new_assessments: [], 
+      edited_assessments: [], 
+      deleted_assessments: []
+    }
+    new: [{student_school_id, assessment_type, assessment_title, score}]
+    edited: [{assessment_id,  assessment_title, assessment_score}]
+    deleted: ['assessment_id']
+  */
+  function get_assessments() {
+    let tempNewAssessments = $('table')[0].dataset.newAssessments
+    let tempEditedAssessments = $('table')[0].dataset.editedAssessments
+    let tempDeletedAssessments = $('table')[0].dataset.deletedAssessments
+
+    let newAssessments = JSON.parse(tempNewAssessments)
+    let editedAssessments = JSON.parse(tempEditedAssessments)
+    let deletedAssessments = JSON.parse(tempDeletedAssessments)
+
+    let newAssessmentsArray = []
+    let editedAssessmentsArray = []
+    let deletedAssessmentsArray = []
+
+    // loop through new assessments
+    for (let i=0; i<newAssessments.length; i++) {
+      let assessmentTitle = newAssessments[i].trim()
+
+      // get elements with assessment-title data attribute eq to assessmentTitle
+      let matchedAssessmentArray = $(`[data-assessment-title="${assessmentTitle}"]`)
+
+      // loop through matched array
+      // start at index 1 to avoid thead>tr>th>span element
+      for (let j=1; j<matchedAssessmentArray.length; j++) {
+        let studentSchoolId = matchedAssessmentArray[j].dataset.schoolId
+        let assessmentType = matchedAssessmentArray[j].dataset.assessmentType
+        let score = matchedAssessmentArray[j].value.trim()
+
+        // validate score
+        checkScoreIsNum(matchedAssessmentArray[j])
+
+        let assessment = {
+          student_school_id: studentSchoolId, 
+          assessment_type: assessmentType, 
+          assessment_desc: assessmentTitle, 
+          assessment_score: score
+        }
+        
+        newAssessmentsArray.push(assessment)
+      }
+    }
+
+    // loop through edited assessments
+    for (let i=0; i<editedAssessments.length; i++) {
+      let assessmentTitle = editedAssessments[i]
+
+      // get elements with assessment-title data attribute eq to assessmentTitle
+      let matchedAssessmentArray = $(`[data-assessment-title="${assessmentTitle}"]`)
+      checkEmptyOrUnique(matchedAssessmentArray[0])
+
+      // loop through matched array
+      // start at index 1 to avoid thead>tr>th>span element
+      for (let j=1; j<matchedAssessmentArray.length; j++) {
+        let assessmentId = matchedAssessmentArray[j].dataset.assessmentId
+        let newAssessmentTitle = matchedAssessmentArray[0].value.trim()
+        let score = matchedAssessmentArray[j].value.trim()
+
+        // validate score
+        checkScoreIsNum(matchedAssessmentArray[j])
+
+        let assessment = {
+          assessment_id: assessmentId,
+          assessment_desc: newAssessmentTitle,
+          assessment_score: score
+        }
+
+        editedAssessmentsArray.push(assessment)
+      }
+    }
+
+    // loop through deleted assessments
+    for (let i=0; i<deletedAssessments.length; i++) {
+      let assessmentTitle = deletedAssessments[i]
+      deletedAssessmentsArray.push(assessmentTitle)
+    }
+
+    const sessionId = $('#session').val()
+    let subjectId = {{ subject.id }}
+    let termId = Number(document.getElementById('term').value )
+    let data = { 'subject_id': subjectId, "term_id": termId, 'session_id': sessionId }
+    if (newAssessmentsArray.length > 0) {data["new_assessments"] = newAssessmentsArray}
+    if (editedAssessmentsArray.length > 0) {data["edited_assessments"] = editedAssessmentsArray}
+    if (deletedAssessmentsArray.length > 0) {data["deleted_assessments"] = deletedAssessmentsArray}
+
+    return JSON.stringify({ ...data })
+  }
+
+
+  // validate score
+  function checkScoreIsNum(element) {
+    let trimmedNum = element.value.trim()
+    if (isNaN(trimmedNum) || trimmedNum === '') {
+      element.setCustomValidity("Field accepts only numbers and can't be empty")
+      element.reportValidity()
+      throw new Error(`Field accepts only numbers and can't be empty`)
+    }
+  }
+
+  
+  // validate assessment title
+  function checkEmptyOrUnique(element) {
+
+    // check if assessment description is empty
+    if (element.value.trim() === '') {
+      element.setCustomValidity("Field can't be empty")
+      element.reportValidity()
+      throw new Error(`Field can't be empty"`)
+    }
+
+    // check if assessment description already exists
+    let assessmentTitles = document.getElementsByClassName('assessmentTitle')
+    for (let _ in Object.keys(assessmentTitles)) {
+      let title = assessmentTitles[_].innerText.trim().toLowerCase()
+      if (title === element.value.trim().toLowerCase()) {
+        element.setCustomValidity("Assessment already exists, use a different description")
+        element.reportValidity()
+        setInterval(() => {})
+        throw new Error('Assessment already exists, use a different description')
+      }
+    }
+  }
+  
+
+  // on save 
+  $("#save_btn").click((e) => {
+    e.preventDefault();
+    let data = get_assessments()
+    save_assessment(data);
+  });
+
+  function save_assessment(data) {
+    $.ajax({
+      url: "{% url 'save_student_result' user_school_id %}", // the endpoint
+      type: "POST", // http method
+      data: {  'data': data }, // data sent with the post request
+
+
+      // handle a successful response
+      success: function (res) {
+        window.location.replace(JSON.parse(res).redirectUrl)
+      },
+
+      // handle a non-successful response
+      error: function (xhr, res, err) {
+        window.location.replace(res.redirectUrl)
+      },
+    });
+  }
+
+  // on change of session
+  // send ajax request for term data
+  // and assessments for that session
+  $('#session').on('change', (e) => {
+    let selected_term = $('#term').val()
+    let selected_session = e.target.value
+    get_session_assessments(selected_session, selected_term)
+  })
+
+  $('#term').on('change', (e) => {
+    createStudentAssementEntries()  
+  })
+
+  function get_session_assessments(sessionId, termId) {
+    $.get("{% url 'get_students_assessment' user_school_id %}", {sessionId, subjectId: {{ subject.id }} })
+    .done((res) => {
+      store.students = res.students
+      updateTerms(res.terms)
+      createStudentAssementEntries()
+    })
+    .fail((res) => {
+      console.log("Failed bro")
+    })
+  } 
+
+  function updateTerms(termsObj) {
+    const termSelectEl = $('#term').empty()
+    for (const termKey in Object.keys(termsObj)) {
+      const term = termsObj[termKey]
+      const optionx = `
+              <option value="${term.id}">
+                Term ${term.term}
+              </option>
+      `
+      const option = $(optionx)
+      termSelectEl[0].append(option[0])
+    }
+  }
+
+  function createStudentAssementEntries() {
+    const term = $('#term').val()
+    $('thead').empty()
+    $('tbody').empty()
+    theadGenerator(store.students[0].assessments[term])
+    for (const student of store.students) {
+      tbodyGenerator(student, term)
+    }
+  }
+
+  // generate table header
+  function theadGenerator(assessments) {
+    const thx1 = `
+                  <tr>
+                    <th>Student ID</th> 
+                    <th>Name</th>
+                  </tr>
+    `
+    const tr = $(thx1)
+
+    assessments.forEach(obj => {
+      const thx2 = ` 
+                    <th>
+                      <span class="assessmentTitle" data-assessment-title="${ obj.assessment_desc }">
+                        ${ obj.assessment_desc }
+                      </span>
+                    </th>
+    `            
+    const icons = `
+                    <span>
+                      <i class="fas fa-pen editBtn text-primary ml-1" ></i>
+                      <i class="fas fa-trash preDeleteBtn text-danger ml-1" data-toggle="modal" data-target=".bd-example-modal-sm"></i>
+                    </span>
+    `     
+    const th = $(thx2)
+    th.append(icons)
+    tr.append(th[0])
+    })
+    $('thead')[0].append(tr[0])
+  }
+
+  // generate table body
+  function tbodyGenerator(student, term) {
+    const trx = `<tr>
+                    <td>${student.school_id}</td>
+                    <td>${student.last_name + ' ' + student.first_name }</td>
+                    
+                  </tr>`
+    const tr = $(trx)
+    student.assessments[term].forEach(obj => {
+      const tdx = `<td class="text-center">
+                      <span data-assessment-title="${obj.assessment_desc}" data-assessment-id="${obj.id}">
+                        ${obj.score}
+                      </span>
+                    </td>`
+      tr.append(tdx)
+    })
+    $('tbody')[0].append(tr[0])
+  }
 
   // csrf token setup
   $(function () {
@@ -530,166 +787,6 @@
       },
     });
   });
-
-  
-
-  // on save 
-  $("#save_btn").click((e) => {
-    e.preventDefault();
-    const data = get_assessments()
-    save_assessment(data);
-  });
-
-  function save_assessment(data) {
-    $.ajax({
-      url: "{% url 'save_student_result' user_school_id %}", // the endpoint
-      type: "POST", // http method
-      data: {  'data': data }, // data sent with the post request
-
-
-      // handle a successful response
-      success: function (res) {
-        window.location.replace(JSON.parse(res).redirectUrl)
-      },
-
-      // handle a non-successful response
-      error: function (xhr, res, err) {
-        window.location.replace(res.redirectUrl)
-      },
-    });
-  }
-
-
-
-  /*
-  returns stringified JSON object 
-    { subject_id: "", new_assessments: [], 
-      edited_assessments: [], 
-      deleted_assessments: []
-    }
-    new: [{student_school_id, assessment_type, assessment_title, score}]
-    edited: [{assessment_id,  assessment_title, assessment_score}]
-    deleted: ['assessment_id']
-  */
-  function get_assessments() {
-    const tempNewAssessments = $('table')[0].dataset.newAssessments
-    const tempEditedAssessments = $('table')[0].dataset.editedAssessments
-    const tempDeletedAssessments = $('table')[0].dataset.deletedAssessments
-
-    const newAssessments = JSON.parse(tempNewAssessments)
-    const editedAssessments = JSON.parse(tempEditedAssessments)
-    const deletedAssessments = JSON.parse(tempDeletedAssessments)
-
-    const newAssessmentsArray = []
-    const editedAssessmentsArray = []
-    const deletedAssessmentsArray = []
-
-    // loop through new assessments
-    for (let i=0; i<newAssessments.length; i++) {
-      const assessmentTitle = newAssessments[i].trim()
-
-      // get elements with assessment-title data attribute eq to assessmentTitle
-      const matchedAssessmentArray = $(`[data-assessment-title="${assessmentTitle}"]`)
-
-      // loop through matched array
-      // start at index 1 to avoid thead>tr>th>span element
-      for (let j=1; j<matchedAssessmentArray.length; j++) {
-        const studentSchoolId = matchedAssessmentArray[j].dataset.schoolId
-        const assessmentType = matchedAssessmentArray[j].dataset.assessmentType
-        const score = matchedAssessmentArray[j].value.trim()
-
-        // validate score
-        checkScoreIsNum(matchedAssessmentArray[j])
-
-        const assessment = {
-          student_school_id: studentSchoolId, 
-          assessment_type: assessmentType, 
-          assessment_desc: assessmentTitle, 
-          assessment_score: score
-        }
-        
-        newAssessmentsArray.push(assessment)
-      }
-    }
-
-    // loop through edited assessments
-    for (let i=0; i<editedAssessments.length; i++) {
-      const assessmentTitle = editedAssessments[i]
-
-      // get elements with assessment-title data attribute eq to assessmentTitle
-      const matchedAssessmentArray = $(`[data-assessment-title="${assessmentTitle}"]`)
-      checkEmptyOrUnique(matchedAssessmentArray[0])
-
-      // loop through matched array
-      // start at index 1 to avoid thead>tr>th>span element
-      for (let j=1; j<matchedAssessmentArray.length; j++) {
-        const assessmentId = matchedAssessmentArray[j].dataset.assessmentId
-        const newAssessmentTitle = matchedAssessmentArray[0].value.trim()
-        const score = matchedAssessmentArray[j].value.trim()
-
-        // validate score
-        checkScoreIsNum(matchedAssessmentArray[j])
-
-        const assessment = {
-          assessment_id: assessmentId,
-          assessment_desc: newAssessmentTitle,
-          assessment_score: score
-        }
-
-        editedAssessmentsArray.push(assessment)
-      }
-    }
-
-    // loop through deleted assessments
-    for (let i=0; i<deletedAssessments.length; i++) {
-      const assessmentTitle = deletedAssessments[i]
-      deletedAssessmentsArray.push(assessmentTitle)
-    }
-
-    const subjectId = {{ subject.id }}
-    const data = { 'subject_id': subjectId }
-    if (newAssessmentsArray.length > 0) {data["new_assessments"] = newAssessmentsArray}
-    if (editedAssessmentsArray.length > 0) {data["edited_assessments"] = editedAssessmentsArray}
-    if (deletedAssessmentsArray.length > 0) {data["deleted_assessments"] = deletedAssessmentsArray}
-
-
-    return JSON.stringify({ ...data })
-  }
-
-
-  // validate score
-  function checkScoreIsNum(element) {
-    const trimmedNum = element.value.trim()
-    if (isNaN(trimmedNum) || trimmedNum === '') {
-      element.setCustomValidity("Field accepts only numbers and can't be empty")
-      element.reportValidity()
-      throw new Error(`Field accepts only numbers and can't be empty`)
-    }
-  }
-
-  
-  // validate assessment title
-  function checkEmptyOrUnique(element) {
-
-    // check if assessment description is empty
-    if (element.value.trim() === '') {
-      element.setCustomValidity("Field can't be empty")
-      element.reportValidity()
-      throw new Error(`Field can't be empty"`)
-    }
-
-    // check if assessment description already exists
-    const assessmentTitles = document.getElementsByClassName('assessmentTitle')
-    for (let _ in Object.keys(assessmentTitles)) {
-      const title = assessmentTitles[_].innerText.trim().toLowerCase()
-      if (title === element.value.trim().toLowerCase()) {
-        element.setCustomValidity("Assessment already exists, use a different description")
-        element.reportValidity()
-        setInterval(() => {})
-        throw new Error('Assessment already exists, use a different description')
-      }
-    }
-  }
   
 </script>
 

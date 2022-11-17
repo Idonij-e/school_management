@@ -21,9 +21,12 @@ def unique(array, obj_key=None):
 
 
 @register.filter
-def student_assessments_filter(query_obj, subject_id):
-    assessments = query_obj.studentassessment_set.filter(subject=subject_id)
+def student_assessments_filter(query_obj, subject_term_id):
+    [subject_id, term_id] = subject_term_id.split(',')
+    assessments = query_obj.studentassessment_set.filter(subject=int(subject_id))
+    # print(assessments)
     return assessments
+    
 
 @register.filter
 def order_assessments(query_obj, assessment_dict):

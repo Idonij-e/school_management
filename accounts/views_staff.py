@@ -7,6 +7,8 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 
+from accounts.utils import current_term
+
 
 from .models import (
     ClassLevel,
@@ -16,7 +18,7 @@ from .models import (
     Session,
     Subject,
     StudentAssessment,
-    Term
+    Term,
 )
 
 
@@ -215,6 +217,7 @@ def view_subjects(request, user_school_id):
 
     return render(request, "staff_templates/staff_subjects.html", context)
 
+
 # def select_assessment_term(request, user_school_id, subject_id, assessment_action):
 #     subject = Subject.objects.get(id=subject_id)
 #     terms = Term.objects.all()
@@ -248,11 +251,15 @@ def view_subjects(request, user_school_id):
 #         }
 #         return render(request, "staff_templates/select_assessment_term.html", context)
 
+
 def staff_add_result(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
-    assessments = StudentAssessment.objects.filter(subject=subject_id)
-    students = subject.class_level.student_set.all()
     sessions = Session.objects.all()
+    students = subject.class_level.student_set.all()
+    current_session = Session.objects.get(current_session=True)
+    current_term = Term.objects.get(current_term=True)
+    current_term_assessments = StudentAssessment.objects.filter(session=current_session, subject=subject)
+
     context = {
         "user_school_id": user_school_id,
         "user_first_name": request.session.get("user_first_name"),
@@ -261,11 +268,51 @@ def staff_add_result(request, user_school_id, subject_id):
         "subject": subject,
         "students": students,
         "assessment_choices": StudentAssessment.assessment_choices,
-        'assessments': assessments,
-        "sessions":sessions,
+        "assessments": current_term_assessments,
+        "sessions": sessions,
+        "current_session": current_session,
+        "current_term": current_term,
+        "subject_term_id": str(subject.id) + "," + str(current_term.id),
     }
 
     return render(request, "staff_templates/staff_add_result.html", context)
+
+
+def get_students_assessment(request, user_school_id):
+    subject_id = request.GET.get("subjectId")
+    session_id = request.GET.get("sessionId")
+    current_session = Session.objects.get(current_session=True)
+    subject = Subject.objects.get(id=subject_id)
+    terms = Session.objects.get(id=session_id).term_set.all()
+
+    if current_session.id == int(session_id):
+        print('triggered')
+        students = subject.class_level.student_set.all()
+    else:
+        students =  Student.objects.filter(studentassessment__session=session_id, studentassessment__subject=subject).distinct()
+
+    data = {"terms": list(terms.values()), "students": []}
+
+    for index, student in enumerate(list(students.values())):
+        student_user = User.objects.get(student__id=student["id"])
+        student_data = {
+            "school_id": student_user.school_id,
+            "first_name": student_user.first_name,
+            "last_name": student_user.last_name,
+            "other_name": student_user.other_names,
+            "assessments": {},
+        }
+        for term in terms:
+            student_data["assessments"][term.id] = list(
+                student_user.student.studentassessment_set.filter(term=term).values()
+            )
+        data["students"].append(student_data)
+
+    return JsonResponse(
+        data,
+        content_type="application/json",
+        safe=False,
+    )
 
 
 def save_student_result(request, user_school_id):
@@ -275,20 +322,30 @@ def save_student_result(request, user_school_id):
 
     data = json.loads(request.POST["data"])
     subject = Subject.objects.get(id=data.get("subject_id"))
-    deleted_assessments = data.get('deleted_assessments')
-    new_assessments = data.get('new_assessments')
-    edited_assessments = data.get('edited_assessments')
+    session = Session.objects.get(id=data.get("session_id"))
+    term = Term.objects.get(id=data.get("term_id"))
+    deleted_assessments = data.get("deleted_assessments")
+    new_assessments = data.get("new_assessments")
+    edited_assessments = data.get("edited_assessments")
     msg = []
-
     try:
         with transaction.atomic():
 
-            # handle deleted assessments 
+            # handle deleted assessments
             if deleted_assessments:
+                # for assessment in deleted_assessments:
+                #     assessment_obj_list = StudentAssessment.objects.filter(
+                #         assessment_desc=assessment
+                #     ).delete()
                 for assessment in deleted_assessments:
-                    assessment_obj_list = StudentAssessment.objects.filter(assessment_desc=assessment).delete()
-                msg.append('deleted')
-                
+                    assessment_obj_list = StudentAssessment.objects.filter(
+                        session=session,
+                        term=term,
+                        subject=subject,
+                        assessment_desc=assessment
+                    ).delete()
+                msg.append("deleted")
+
             # handle new assessments
             if new_assessments:
                 for assessment in new_assessments:
@@ -302,25 +359,31 @@ def save_student_result(request, user_school_id):
                     StudentAssessment.objects.create(
                         student=student,
                         subject=subject,
+                        term=term,
+                        session=session,
                         assessment_type=assessment_type,
                         assessment_desc=assessment_desc,
                         score=score,
                     )
-                msg.append('added')
+                msg.append("added")
 
             # handle edited assessments
             if edited_assessments:
                 for assessment in edited_assessments:
-                    assessment_obj = StudentAssessment.objects.get(id=assessment.get('assessment_id'))
-                    assessment_obj.assessment_desc = assessment.get('assessment_desc')
-                    assessment_obj.score = assessment.get('assessment_score')
+                    assessment_obj = StudentAssessment.objects.get(
+                        id=assessment.get("assessment_id")
+                    )
+                    assessment_obj.assessment_desc = assessment.get("assessment_desc")
+                    assessment_obj.score = assessment.get("assessment_score")
                     assessment_obj.save()
-                msg.append('edited')
+                msg.append("edited")
 
-        messages.success(request, "Assessments {} successfully".format(' and '.join(msg)))
+        messages.success(
+            request, "Assessments {} successfully".format(" and ".join(msg))
+        )
 
     except Exception as e:
-        print('error: ', e)
+        print("error: ", e)
         messages.error(request, "Failed to add assessments")
 
     finally:
@@ -338,6 +401,7 @@ def save_student_result(request, user_school_id):
             safe=False,
         )
 
+
 def final_assessment(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     assessments = StudentAssessment.objects.filter(subject=subject_id)
@@ -351,7 +415,9 @@ def final_assessment(request, user_school_id, subject_id):
 
         if assessment.assessment_type in assessments_type_and_num:
             assessments_type_and_num[assessment.assessment_type] += 1
-            assessments_desc[assessment.assessment_type]= assessments_desc[assessment.assessment_type] + [assessment.assessment_desc]
+            assessments_desc[assessment.assessment_type] = assessments_desc[
+                assessment.assessment_type
+            ] + [assessment.assessment_desc]
 
         else:
             assessments_type_and_num[assessment.assessment_type] = 1
@@ -364,10 +430,9 @@ def final_assessment(request, user_school_id, subject_id):
         "user_other_names": request.session.get("user_other_names"),
         "subject": subject,
         "students": students,
-        'assessments': assessments,
-        'assessments_type_and_number': assessments_type_and_num,
-        "assessments_desc": assessments_desc
+        "assessments": assessments,
+        "assessments_type_and_number": assessments_type_and_num,
+        "assessments_desc": assessments_desc,
     }
 
     return render(request, "staff_templates/final_assessment.html", context)
-
