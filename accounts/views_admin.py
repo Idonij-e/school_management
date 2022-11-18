@@ -324,10 +324,10 @@ def add_student_save(request, user_school_id):
     else:
         form = AddStudentForm(request.POST, request.FILES)
 
-        try :
-            class_level_id = request.POST['class_level_id']
+        try:
+            class_level_id = request.POST["class_level_id"]
         except KeyError:
-            messages.error(request, "Select a Class To Add Student!") 
+            messages.error(request, "Select a Class To Add Student!")
             return redirect("/" + user_school_id + "/add_student")
 
         if form.is_valid():
@@ -348,26 +348,22 @@ def add_student_save(request, user_school_id):
             username = generate_school_id()
             profile_pic = form.cleaned_data["profile_pic"]
 
-
             try:
-                current_term = Term.objects.get(current_term=True)
-                
                 class_level = ClassLevel.objects.get(id=class_level_id)
+                students_new_class = Student.objects.filter(class_level=class_level)
+                current_session = Session.objects.get(current_session=True)
 
-                
-                
                 user = User.objects.create_user(
-                username=username,
-                password=password,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                other_names=other_names,
-                user_type=3,
-                phone_number=phone_number,
-                gender=gender,
+                    username=username,
+                    password=password,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    other_names=other_names,
+                    user_type=3,
+                    phone_number=phone_number,
+                    gender=gender,
                 )
-
 
                 if profile_pic != None or profile_pic != "":
                     user.profile_pic = profile_pic
@@ -376,42 +372,30 @@ def add_student_save(request, user_school_id):
                 user.student.address = dob
                 user.student.phone_number = phone_number
 
-
                 user.student.class_level = class_level
 
-                user.student.term_enrolled = current_term
-                user.student.current_session = current_term.session
+                user.student.term_enrolled = current_session.term_set.get(
+                    current_term=True
+                )
+                user.student.current_session = current_session
+
+                if len(students_new_class) > 0:
+                    current_session_assessments = StudentAssessment.objects.filter(
+                        student=students_new_class[0], session=current_session
+                    )
+                    for assessment in current_session_assessments:
+                        StudentAssessment(
+                            student=user.student,
+                            subject=assessment.subject,
+                            term=assessment.term,
+                            session=assessment.session,
+                            assessment_type=assessment.assessment_type,
+                            assessment_desc=assessment.assessment_desc,
+                            score=0,
+                        ).save()
 
                 user.save()
                 messages.success(request, "Student Added Successfully!")
-
-                
-                # terms_in_current_session = current_term.session 
-                # assessment_list = []
-                # try:
-                #     old_student_instance = class_level.student_set.all()[0]
-                #     for term in terms_in_current_session:
-                #         try:
-                #             assessments = old_student_instance.studentassessment_set.filter(term=term)
-                #             assessment_list.append(assessments)
-
-                #         except StudentAssessment.DoesNotExist:
-                #             pass
-
-                #     if assessment_list != []:
-                #         for term_assessments in assessment_list:
-                #             for assessment in term_assessments:
-                #                 new_assessment_instance = deepcopy(assessment)
-                #                 new_assessment_instance.id = None
-                #                 new_assessment_instance.student = user.student
-                #                 new_assessment_instance.score = 0
-                #                 new_assessment_instance.save()
-
-                # except Student.DoesNotExist:
-                #     pass
-            
-            except Term.DoesNotExist:
-                messages.error(request, "Select a Current Session and Term To Add Student!") 
 
             except Exception as E:
                 print(E)
@@ -458,6 +442,7 @@ def edit_student_save(request, user_school_id):
 
     else:
         student_school_id = request.session.get("student_school_id")
+        current_session = Session.objects.get(current_session=True)
 
         if student_school_id == None:
             return redirect("/" + user_school_id + "/manage_student")
@@ -503,59 +488,46 @@ def edit_student_save(request, user_school_id):
                 student_model = user.student
                 student_model.address = address
                 student_model.dob = dob
+                student_model.is_old = False
 
-                previous_class_level = student_model.class_level
-    
                 class_level = ClassLevel.objects.get(id=class_level_id)
+                students_new_class = class_level.student_set.all()
 
-                if previous_class_level != None or previous_class_level != "":
-                    if previous_class_level != class_level:
+                # excute this block if class level was changed
+                if class_level != student_model.class_level:
+                    # delete assessments done in current session while in previous class
+                    if current_session == student_model.current_session:
+                        StudentAssessment.objects.filter(
+                            student=student_model, session=current_session
+                        ).delete()
 
-                        current_term = Term.objects.get(current_term=True)
-                        terms_in_current_session = current_term.session.term_set.all()
-                        assessment_list = []
-                        
-                        for term in terms_in_current_session:
-                            assessments = student_model.studentassessment_set.filter(term=term)
-                            assessment_list.append(assessments)
-                            StudentAssessment.objects.filter(student=student_model, term=term).delete()
+                    # create assessments if new class has assessments
+                    if len(students_new_class) > 0:
+                        current_session_assessments = StudentAssessment.objects.filter(
+                            student=students_new_class[0], session=current_session
+                        )
+                        for assessment in current_session_assessments:
+                            StudentAssessment(
+                                student=student_model,
+                                subject=assessment.subject,
+                                term=assessment.term,
+                                session=assessment.session,
+                                assessment_type=assessment.assessment_type,
+                                assessment_desc=assessment.assessment_desc,
+                                score=0,
+                            ).save()
 
-
+                student_model.previous_class = student_model.class_level
                 student_model.class_level = class_level
+                student_model.current_session = current_session
 
                 user.save()
 
                 student_model.save()
 
-                # if previous_class_level != None or previous_class_level != "":
-                if previous_class_level != class_level:
-                    current_term = Term.objects.get(current_term=True)
-                    terms_in_current_session = current_term.session.term_set.all()
-                    
-                    try:
-                        old_student_instance = class_level.student_set.all()[0]
-                        for term in terms_in_current_session:
-                            assessments = old_student_instance.studentassessment_set.filter(term=term)
-                            if assessments.exists():
-                                for assessment in assessments:
-                                    new_assessment_instance = deepcopy(assessment)
-                                    new_assessment_instance.id = None
-                                    new_assessment_instance.student = user.student
-                                    new_assessment_instance.score = 0
-                                    new_assessment_instance.save()
-                  
-
-                    except Student.DoesNotExist:
-                        pass
-        
-
-                # Delete student_id SESSION after the data is updated
                 del request.session["student_school_id"]
 
                 messages.success(request, "Student Updated Successfully!")
-
-            except Term.DoesNotExist:
-                messages.error(request, "Select a Current Session and Term To Edit This Student!")
 
             except:
                 messages.success(request, "Failed to Update Student.")
@@ -1068,13 +1040,11 @@ def add_fee_save(request, user_school_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Successfully Added Fee")
-            # return HttpResponseRedirect(reverse("add_fee"))
             return redirect("/" + user_school_id + "/add_fee")
         else:
             form = FeeForm(request.POST)
             return redirect("/" + user_school_id + "/add_fee")
     else:
-        # return HttpResponse("Method Not Allowed")
         messages.error(request, "Invalid Method")
         return redirect("/" + user_school_id + "/add_fee")
 
@@ -1283,7 +1253,6 @@ def manage_students_left(request, user_school_id):
 
 def change_class_level_save(request, user_school_id):
 
-    current_session = Session.objects.get(current_session=True)
     if request.method != "POST":
         print("failed")
         return redirect("/" + user_school_id + "/manage_class")
@@ -1296,13 +1265,14 @@ def change_class_level_save(request, user_school_id):
             with transaction.atomic():
                 for student_school_user_id in data.get("students"):
                     new_student = User.objects.get(school_id=student_school_user_id)
-                    new_student.student.isOld = False
+                    new_student.student.is_old = False
                     new_student.student.student_status = 2
-                    new_student.student.previous_class = None
+                    new_student.student.previous_class = new_student.student.class_level
                     new_student.student.session_completed = str(current_session).split(
                         " "
                     )[0]
                     new_student.student.class_level = None
+                    new_student.student.current_session = None
                     new_student.save()
 
             messages.success(request, "Student(s) moved successfully")
@@ -1353,11 +1323,12 @@ def change_class_level_save(request, user_school_id):
             with transaction.atomic():
                 for student_school_user_id in data.get("students"):
                     new_student = User.objects.get(school_id=student_school_user_id)
-                    new_student.student.isOld = False
+                    new_student.student.is_old = False
                     new_student.student.student_status = 3
-                    new_student.student.previous_class = str(old_class)
+                    new_student.student.previous_class = new_student.student.class_level
                     new_student.student.session_completed = None
                     new_student.student.class_level = None
+                    new_student.student.current_session = None
                     new_student.save()
 
             messages.success(request, "Student(s) moved successfully")
@@ -1388,99 +1359,68 @@ def change_class_level_save(request, user_school_id):
             )
 
     new_class = ClassLevel.objects.get(id=data.get("class_id"))
-    old_students = Student.objects.filter(class_level=new_class)
-    old_class = User.objects.get(school_id=data.get("students")[0]).student.class_level
+    students_new_class = new_class.student_set.all()
+    current_session = Session.objects.get(current_session=True)
 
     try:
-        current_term = Term.objects.get(current_term=True)
-        # terms_in_current_session = current_term.session_set.all()
 
         with transaction.atomic():
-            for student in old_students:
-                student.isOld = True
+            for student in students_new_class:
+                student.is_old = True
                 student.save()
 
+            msg_student_moved = False
+            msg_student_not_moved = []
             for student_school_user_id in data.get("students"):
-                # change old_class id to "" if moving from completed or left to existing class
                 new_student = User.objects.get(school_id=student_school_user_id)
-                new_student.student.isOld = False
+                if new_student.student.current_session == current_session:
+                    msg_student_not_moved.append(str(new_student.student))
+                    continue
+                new_student.student.is_old = False
                 new_student.student.student_status = 1
                 new_student.student.session_completed = None
+                new_student.student.current_session = current_session
                 new_student.student.previous_class = (
-                    str(old_class.id) if old_class else None
+                    new_student.student.class_level
+                    if new_student.student.class_level
+                    else None
                 )
-                
-                
-                # if moving student from existing class to another, run this block
-                if User.objects.get(school_id=data.get("students")[0]).student.class_level:
 
-                    assessment_list = []
-
-                    # for term in terms_in_current_session:
-                    #     try:
-                    #         assessments = new_student.studentassessment_set.filter(term=term)
-                    #         assessment_list.append(assessments)
-
-                    #     except StudentAssessment.DoesNotExist:
-                    #         pass
-
-                    if assessment_list != []:
-                        for term_assessments in assessment_list:
-                            for assessment in term_assessments:
-                                assessment.delete()
+                # create assessments if new class has assessments
+                if len(students_new_class) > 0:
+                    current_session_assessments = StudentAssessment.objects.filter(
+                        student=students_new_class[0], session=current_session
+                    )
+                    for assessment in current_session_assessments:
+                        StudentAssessment(
+                            student=new_student.student,
+                            subject=assessment.subject,
+                            term=assessment.term,
+                            session=assessment.session,
+                            assessment_type=assessment.assessment_type,
+                            assessment_desc=assessment.assessment_desc,
+                            score=0,
+                        ).save()
 
                 new_student.student.class_level = new_class
                 new_student.save()
+                msg_student_moved = True
 
+        if msg_student_moved:
+            messages.success(request, "Student(s) moved successfully")
 
-        
-                assessment_list = []
-                try:
-                    old_student_instance = new_class.student_set.all()[0]
-                    # for term in terms_in_current_session:
-                    #     try:
-                    #         assessments = old_student_instance.studentassessment_set.filter(term=term)
-                    #         assessment_list.append(assessments)
-
-                    #     except StudentAssessment.DoesNotExist:
-                    #         pass
-
-                    if assessment_list != []:
-                        for term_assessments in assessment_list:
-                            for assessment in term_assessments:
-                                new_assessment_instance = deepcopy(assessment)
-                                new_assessment_instance.id = None
-                                new_assessment_instance.student = new_student
-                                new_assessment_instance.score = 0
-                                new_assessment_instance.save()
-
-                except Student.DoesNotExist:
-                    pass
-
-        messages.success(request, "Student(s) moved successfully")
-    
-    except Term.DoesNotExist:
-        messages.error(request, "Select a Current Session and Term To Move Student(s)!") 
-
-        # return JsonResponse(
-        #     json.dumps(
-        #         {
-        #             "redirectUrl": "/"
-        #             + user_school_id
-        #             + "/manage_class/"
-        #             + new_class.class_level_name
-        #             + "/manage_students"
-        #         }
-        #     ),
-        #     content_type="application/json",
-        #     safe=False,
-        # )
+        if len(msg_student_not_moved) > 0:
+            messages.error(
+                request,
+                "failed to move {}, please change the current session before changing class.".format(
+                    (", ").join(msg_student_not_moved)
+                ),
+            )
 
     except Exception as e:
         print("error: ", e)
         messages.error(request, "Failed to move Student(s)")
 
-        
     finally:
         # if moving student from existing class to another, run this block
         if User.objects.get(school_id=data.get("students")[0]).student.class_level:

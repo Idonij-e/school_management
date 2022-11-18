@@ -152,12 +152,12 @@
                                 {% for student in students %}
                                     <tr>
                                         {% if change_class_level %}
-                                            <td class="text-center"><input type="checkbox" name="" class="selectStudent" data-student-user-school-id={{ student.user.school_id }} data-is-old={{student.isOld}}></td>
+                                            <td class="text-center"><input type="checkbox" name="" class="selectStudent" data-student-user-school-id={{ student.user.school_id }} data-is-old={{student.is_old}}></td>
                                         {% endif %}
                                         <td>{{ student.user.school_id }}</td>
                                         <td>
                                             {% if change_class_level %}
-                                                {% if student.isOld %}
+                                                {% if student.is_old %}
                                                 <span class="badge badge-secondary">Old</span>
                                                 {% endif %}
                                             {% endif %}

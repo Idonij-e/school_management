@@ -103,28 +103,6 @@
                 </p>
               </a>
             </li>
-
-            <li class="nav-item dropdown">
-              <a id="navbarDropdown" role="button" href="#collapseExample" class="nav-link dropdown-toggle" data-toggle="collapse" aria-expanded="false" aria-controls="collapseExample">
-                <i class="nav-icon fas fa-th"></i>
-                <p>
-                  Current Students in Each Class
-                </p>
-              </a>
-  
-              <div class="collapse" id="collapseExample">
-                <div class="">
-                  <ul>
-                    {% for course in courses %}
-                    <li class="">
-                      <a class="dropdown-item" href="{% url 'student_records' user_school_id course.class_level_name %}">{{ course.class_level_name }}</a>
-                    </li>
-                  {% endfor %}
-                  </ul>
-                </div>
-              </div>
-              
-            </li>
             
             <li class="nav-item">
               {% url 'manage_subject' user_school_id as manage_subject %}

@@ -55,7 +55,7 @@ class Session(models.Model):
     current_session = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return "{}/{} session".format(self.session_start, self.session_end)
+        return "{}/{}".format(self.session_start, self.session_end)
 
 
 class Term(models.Model):
@@ -97,8 +97,8 @@ class Student(models.Model):
     class_level = models.ForeignKey(
         ClassLevel, on_delete=models.DO_NOTHING, null=True, blank=True
     )
-    isOld = models.BooleanField(default=False)
-    previous_class = models.CharField(max_length=100, blank=True, null=True)
+    is_old = models.BooleanField(default=False)
+    previous_class = models.ForeignKey(ClassLevel, on_delete=models.DO_NOTHING, blank=True, null=True, related_name="previous_class")
     session_completed = models.CharField(max_length=200, blank=True, null=True)
     # gender = models.CharField(max_length=50)
     dob = models.DateField(null=True, blank=True)
