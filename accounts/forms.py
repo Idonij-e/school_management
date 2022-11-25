@@ -58,7 +58,7 @@ class AddStudentForm(forms.Form):
         (2,'Male'),
     )
     
-    class_level_id = forms.ChoiceField(label="Class", choices=get_class_level_choices, widget=forms.Select(attrs={"class":"form-control"}))
+    class_level_id = forms.ChoiceField(label="Class", choices=get_class_level_choices, widget=forms.Select(attrs={"class":"form-control", "id": "class_level"}))
     gender = forms.ChoiceField(label="Gender", choices=gender_list, widget=forms.Select(attrs={"class":"form-control"}))
     dob=forms.DateField(label="Date of Birth", widget=forms.DateInput(format=('%Y-%m-%d'), attrs={"class":"form-control","type":"date"}), required=False)
     profile_pic = forms.ImageField(label="Profile Pic", required=False)

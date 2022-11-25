@@ -1,5 +1,6 @@
 import json
 from multiprocessing import context
+import re
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -255,10 +256,8 @@ def view_subjects(request, user_school_id):
 def staff_add_result(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     sessions = Session.objects.all()
-    students = subject.class_level.student_set.all()
     current_session = Session.objects.get(current_session=True)
-    current_term = Term.objects.get(current_term=True)
-    current_term_assessments = StudentAssessment.objects.filter(session=current_session, subject=subject)
+    current_term = current_session.term_set.get(current_term=True)
 
     context = {
         "user_school_id": user_school_id,
@@ -266,9 +265,7 @@ def staff_add_result(request, user_school_id, subject_id):
         "user_last_name": request.session.get("user_last_name"),
         "user_other_names": request.session.get("user_other_names"),
         "subject": subject,
-        "students": students,
         "assessment_choices": StudentAssessment.assessment_choices,
-        "assessments": current_term_assessments,
         "sessions": sessions,
         "current_session": current_session,
         "current_term": current_term,
@@ -280,20 +277,28 @@ def staff_add_result(request, user_school_id, subject_id):
 
 def get_students_assessment(request, user_school_id):
     subject_id = request.GET.get("subjectId")
-    session_id = request.GET.get("sessionId")
+    session_id = (
+        request.GET.get("sessionId")
+        if request.GET.get("sessionId") != ""
+        else Session.objects.get(current_session=True).id
+    )
     current_session = Session.objects.get(current_session=True)
     subject = Subject.objects.get(id=subject_id)
     terms = Session.objects.get(id=session_id).term_set.all()
 
     if current_session.id == int(session_id):
-        print('triggered')
         students = subject.class_level.student_set.all()
     else:
-        students =  Student.objects.filter(studentassessment__session=session_id, studentassessment__subject=subject).distinct()
+        students = Student.objects.filter(
+            studentassessment__session=session_id, studentassessment__subject=subject
+        ).distinct()
 
-    data = {"terms": list(terms.values()), "students": []}
+    data = {
+        "terms": list(terms.values()),
+        "students": [],
+    }
 
-    for index, student in enumerate(list(students.values())):
+    for student in list(students.values()):
         student_user = User.objects.get(student__id=student["id"])
         student_data = {
             "school_id": student_user.school_id,
@@ -342,7 +347,7 @@ def save_student_result(request, user_school_id):
                         session=session,
                         term=term,
                         subject=subject,
-                        assessment_desc=assessment
+                        assessment_desc=assessment,
                     ).delete()
                 msg.append("deleted")
 
@@ -403,10 +408,14 @@ def save_student_result(request, user_school_id):
 
 
 def final_assessment(request, user_school_id, subject_id):
+    sessionId = request.GET.get("sessionId")
     subject = Subject.objects.get(id=subject_id)
     assessments = StudentAssessment.objects.filter(subject=subject_id)
     students = subject.class_level.student_set.all()
     assessments_student_zero = students[0].studentassessment_set.all()
+    sessions = Session.objects.all()
+    current_session = Session.objects.get(current_session=True)
+    current_term = current_session.term_set.get(current_term=True)
 
     assessments_type_and_num = {}
     assessments_desc = {}
@@ -433,6 +442,75 @@ def final_assessment(request, user_school_id, subject_id):
         "assessments": assessments,
         "assessments_type_and_number": assessments_type_and_num,
         "assessments_desc": assessments_desc,
+        "sessions": sessions,
+        "current_session": current_session,
+        "current_term": current_term
     }
 
     return render(request, "staff_templates/final_assessment.html", context)
+
+
+def get_final_assessment(request, user_school_id):
+    subject_id = request.GET.get("subjectId")
+    session_id = (
+        request.GET.get("sessionId")
+        if request.GET.get("sessionId") != ""
+        else Session.objects.get(current_session=True).id
+    )
+    current_session = Session.objects.get(current_session=True)
+    subject = Subject.objects.get(id=subject_id)
+    terms = Session.objects.get(id=session_id).term_set.all()
+
+    if current_session.id == int(session_id):
+        students = subject.class_level.student_set.all()
+    else:
+        students = Student.objects.filter(
+            studentassessment__session=session_id, studentassessment__subject=subject
+        ).distinct()
+
+    data = {
+        "terms": list(terms.values()),
+        "assessment_type_and_descs": {},
+        "students": [],
+    }
+
+    for term in terms:
+        data["assessment_type_and_descs"][term.id] = {}
+
+    assessments = StudentAssessment.objects.filter(
+        session=session_id, subject=subject_id
+    )
+    if assessments.exists():
+        for assessment in assessments[0].student.studentassessment_set.filter(
+            subject=subject_id
+        ):
+            try:
+                data["assessment_type_and_descs"][assessment.term.id][
+                    assessment.assessment_type
+                ].append(assessment.assessment_desc)
+            except KeyError:
+                data["assessment_type_and_descs"][assessment.term.id][
+                    assessment.assessment_type
+                ] = [assessment.assessment_desc]
+
+        for student in list(students.values()):
+            student_user = User.objects.get(student__id=student["id"])
+            student_data = {
+                "school_id": student_user.school_id,
+                "first_name": student_user.first_name,
+                "last_name": student_user.last_name,
+                "other_name": student_user.other_names,
+                "assessments": {},
+            }
+            for term in terms:
+                student_data["assessments"][term.id] = list(
+                    student_user.student.studentassessment_set.filter(
+                        term=term
+                    ).values()
+                )
+            data["students"].append(student_data)
+    return JsonResponse(
+        data,
+        content_type="application/json",
+        safe=False,
+    )

@@ -50,6 +50,45 @@
     <div class="row">
       <div class="col-md-12">
 
+        <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="assessment_type"
+              >Select Session</label
+            >
+          </div>
+          <select
+            class="custom-select"
+            name="session"
+            id="session"
+          >
+            {% for session in sessions %}
+            <option  value="{{ session.id }}">
+              {{ session }}
+            </option>
+            {% endfor %}
+          </select>
+
+          <div class="input-group-prepend ml-3">
+            <label class="input-group-text" for="assessment_type"
+            >Select Term</label
+          >            
+          </div>
+          <select
+            class="custom-select"
+            name="term"
+            id="term"
+          >
+            {% for term in current_session.term_set.all %}
+            <option value="{{ term.id }}" >
+              {{ term }}
+            </option>
+            {% endfor %}
+          </select>
+          <br />&nbsp;
+        </div>
+      </div>
+    </div>
+
         <!-- general form elements -->
         <div class="card">
           <div class="card-header">
@@ -87,29 +126,11 @@
           <div class="card-body table-responsive p-0">
               <table class="table table-hover text-nowrap" name="table">
                 <thead>
-                  <tr>
-                    <th >Student ID</th>
-                    <th>Name</th>
-                    {% for key, value in assessments_type_and_number.items %}
-                    <th class="text-center" colspan={{ value }}>
-                      <span>
-                        {{ key.title }}
-                      </span>
-                    </th>
-                    {% endfor %}
-                    <th>
-                        Total Score
-                    </th>
+                  <tr id="thead-row1">
+                   
                   </tr>
-                  <tr>
-                    <th></th>
-                    <th></th>
-                    {% for key, assessments in assessments_desc.items %}
-                        {% for assessment_desc in assessments %}
-                            <th class="text-center">{{ assessment_desc }}</th>
-                        {% endfor %}
-                    {% endfor %}
-                    <th></th>
+                  <tr id="thead-row2">
+                    
                   </tr>
                 </thead>
 
@@ -163,7 +184,8 @@
 
 {% block custom_js %}
 
-    <script>
+  <script>
+    let finalAssessmentStore = {}
 
     const tbodyEl = document.getElementsByTagName('tbody')[0]
     const trEls = tbodyEl.getElementsByTagName('tr')
@@ -177,6 +199,185 @@
         const finalScoreEl = trEls[row].getElementsByClassName('final_score')
         finalScoreEl[0].innerHTML = final_score
     }
-    </script>
+
+    // on page load get assessments via ajax
+    const currentSessionId = {{current_session.id}}
+    const currentTermId = {{current_term.id}}
+    get_final_assessment("", currentSessionId, currentTermId)
+
+    // on change of session
+    // send ajax request for term data
+    // and assessments for that session
+    $('#session').on('change', (e) => {
+      let selected_session = e.target.value
+      get_final_assessment(selected_session)
+    })
+
+    $('#term').on('change', (e) => {
+      createStudentAssementEntries()
+    })
+
+    function get_final_assessment(sessionId, currentSessionId=false, currentTermId=false) {
+      $.get("{% url 'get_final_assessment' user_school_id %}", {sessionId, subjectId: {{ subject.id }} })
+      .done((res) => {
+        finalAssessmentStore = res
+        updateTerms(res.terms, currentSessionId, currentTermId)
+        createStudentAssementEntries()
+      })
+      .fail((res) => {
+        console.log("Failed bro")
+      })
+    } 
+
+    function updateTerms(termsObj, currentSessionId, currentTermId) {
+      const termSelectEl = $('#term').empty()
+      for (const termKey in Object.keys(termsObj)) {
+        const term = termsObj[termKey]
+        const optionx = `
+                <option value="${term.id}">
+                  Term ${term.term}
+                </option>
+        `
+        const option = $(optionx)
+        termSelectEl[0].append(option[0])
+        if (currentSessionId && currentTermId) {
+          $("#session").children(`[value="${currentSessionId}"]`).attr('selected', true)
+          $("#term").children(`[value="${currentTermId}"]`).attr('selected', true)
+        }
+      }
+    }
+
+    function createStudentAssementEntries() {
+      const term = $('#term').val()
+      theadGenerator(finalAssessmentStore.assessment_type_and_descs[term])
+      try {
+        $('tbody').empty()
+        for (const student of finalAssessmentStore.students) {
+          tbodyGenerator(student, term)
+        }
+      } catch (err) {
+          console.log(err)
+        }
+    }
+
+    const theadGenerator = (assessment_desc) => {
+      $('#thead-row1').empty()
+      $('#thead-row2').empty()
+      
+      let thx1 = `<th>Student ID</th>`
+      $('#thead-row1')[0].append($(thx1)[0])
+      thx1 = `<th>Name</th>`
+      $('#thead-row1')[0].append($(thx1)[0])
+
+      let thx2 = `<th><th/>`
+      $('#thead-row2')[0].append($(thx2)[0])
+      $('#thead-row2')[0].append($(thx2)[0])
+
+
+      for (let key of Object.keys(assessment_desc)) {
+        thx1 = `<th class="text-center" colspan=${assessment_desc[key].length}>
+                    <span style="text-transform: capitalize">
+                      ${key}
+                    </span>
+                  </th>
+                  `
+        $('#thead-row1')[0].append($(thx1)[0])
+        for (let assessment of assessment_desc[key]) {
+          thx2 = `<th class="text-center">${assessment}</th>`
+          $('#thead-row2')[0].append($(thx2)[0])
+        }
+      }
+
+      thx1 = `
+                <th>
+                  Total Score
+                </th>
+              `
+      $('#thead-row1')[0].append($(thx1)[0])
+      thx2 = `<th></th>`
+      $('#thead-row2')[0].append($(thx2)[0])
+    }
+
+    // generate table body
+    function tbodyGenerator(student, term) {
+      let score = 0
+      const trx = `<tr>
+                      <td>${student.school_id}</td>
+                      <td>${student.last_name + ' ' + student.first_name }</td>
+                      
+                    </tr>`
+      const tr = $(trx)
+      student.assessments[term].forEach(obj => {
+        score += obj.score
+        const tdx = `<td class="text-center">
+                        <span class="score" data-assessment-title="${obj.assessment_desc}" data-assessment-id="${obj.id}">
+                            ${obj.score}
+                        </span>
+                      </td>`
+        tr.append(tdx)
+      })
+      const tdx = `<td class="final_score text-center">${score}</td>`
+      tr.append(tdx)
+      $('tbody')[0].append(tr[0])
+    }
+
+    // csrf token setup
+    $(function () {
+      // This function gets cookie with a given name
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie != "") {
+          let cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            let cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == name + "=") {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      let csrftoken = getCookie("csrftoken");
+
+      /*
+      The functions below will create a header with csrftoken
+      */
+
+      function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
+      }
+      function sameOrigin(url) {
+        // test that a given url is a same-origin URL
+        // url could be relative or scheme relative or absolute
+        let host = document.location.host; // host + port
+        let protocol = document.location.protocol;
+        let sr_origin = "//" + host;
+        let origin = protocol + sr_origin;
+        // Allow absolute or scheme relative URLs to same origin
+        return (
+          url == origin ||
+          url.slice(0, origin.length + 1) == origin + "/" ||
+          url == sr_origin ||
+          url.slice(0, sr_origin.length + 1) == sr_origin + "/" ||
+          // or any other URL that isn't scheme relative or absolute i.e relative.
+          !/^(\/\/|http:|https:).*/.test(url)
+        );
+      }
+
+      $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+            // Send the token to same-origin, relative URLs only.
+            // Send the token only if the method warrants CSRF protection
+            // Using the CSRFToken value acquired earlier
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+          }
+        },
+      });
+    });
+  </script>
 
 {% endblock %}

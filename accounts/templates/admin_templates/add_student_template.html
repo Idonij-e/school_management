@@ -46,7 +46,7 @@
 
     <script>
         $('form').submit(function(e) {
-
+                
         phoneNumEle = document.getElementById('id_phone_number')
 
         const validatePhoneNum = (phoneNum) => {
@@ -57,6 +57,7 @@
                 }, 3000)   
 
                 e.preventDefault()
+                throw new Error('invalid phone number format')
             }
         } 
 
@@ -71,8 +72,11 @@
                 }, 3000)  
 
                 e.preventDefault()
+                throw new Error("image larger than 2MB")
             }
         }
+
+        $("#class_level").prop('disabled', false)
             
         validatePhoneNum(phoneNumEle.value) 
         checkImgSize() 
