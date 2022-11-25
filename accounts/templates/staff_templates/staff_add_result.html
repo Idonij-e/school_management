@@ -80,7 +80,7 @@
               id="term"
             >
               {% for term in current_session.term_set.all %}
-              <option value="{{ term.id }}" {% if term.id == current_term %} selected {% endif %}>
+              <option value="{{ term.id }}" >
                 {{ term }}
               </option>
               {% endfor %}
@@ -167,38 +167,9 @@
           <div class="card-body table-responsive p-0">
               <table class="table table-hover text-nowrap" name="table">
                 <thead>
-                  <tr>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    {% for assessment in assessments|unique:"assessment_desc" %}
-                    <th>
-                      <span class="assessmentTitle" data-assessment-title="{{ assessment.assessment_desc }}">
-                        {{ assessment.assessment_desc }} 
-                      </span>
-                      <span>
-                        <i class="fas fa-pen editBtn text-primary ml-1" ></i>
-                        <i class="fas fa-trash preDeleteBtn text-danger ml-1" data-toggle="modal" data-target=".bd-example-modal-sm"></i>
-                      </span>
-                    </th>
-                    {% endfor %}
-                  </tr>
                 </thead>
 
                 <tbody>
-                  {% for student in students %}
-                  <tr>
-                    <td>{{ student.user.school_id }}</td>
-                    <td>{{ student.user.last_name }} {{ student.user.first_name }} {{ student.user.other_names }}</td>
-                    {% for assessment in student|student_assessments_filter:subject_term_id %}
-                    <td class="text-center">
-                      <span data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
-                        {{ assessment.score }}
-                      </span>
-                     
-                    </td>
-                    {% endfor %}
-                  </tr>
-                  {% endfor %}
                 </tbody>
               </table>
             <div id="results"></div>
@@ -631,24 +602,28 @@
     });
   }
 
+  // on page load get assessments via ajax
+  const currentSessionId = {{current_session.id}}
+  const currentTermId = {{current_term.id}}
+  get_session_assessments("", currentSessionId, currentTermId)
+
   // on change of session
   // send ajax request for term data
   // and assessments for that session
   $('#session').on('change', (e) => {
-    let selected_term = $('#term').val()
     let selected_session = e.target.value
-    get_session_assessments(selected_session, selected_term)
+    get_session_assessments(selected_session)
   })
 
   $('#term').on('change', (e) => {
     createStudentAssementEntries()  
   })
 
-  function get_session_assessments(sessionId, termId) {
+  function get_session_assessments(sessionId, currentSessionId=false, currentTermId=false) {
     $.get("{% url 'get_students_assessment' user_school_id %}", {sessionId, subjectId: {{ subject.id }} })
     .done((res) => {
       store.students = res.students
-      updateTerms(res.terms)
+      updateTerms(res.terms, currentSessionId, currentTermId)
       createStudentAssementEntries()
     })
     .fail((res) => {
@@ -656,7 +631,8 @@
     })
   } 
 
-  function updateTerms(termsObj) {
+
+  function updateTerms(termsObj, currentSessionId, currentTermId) {
     const termSelectEl = $('#term').empty()
     for (const termKey in Object.keys(termsObj)) {
       const term = termsObj[termKey]
@@ -667,16 +643,32 @@
       `
       const option = $(optionx)
       termSelectEl[0].append(option[0])
+      if (currentSessionId && currentTermId) {
+          $("#session").children(`[value="${currentSessionId}"]`).attr('selected', true)
+          $("#term").children(`[value="${currentTermId}"]`).attr('selected', true)
+      }
     }
   }
 
   function createStudentAssementEntries() {
     const term = $('#term').val()
-    $('thead').empty()
-    $('tbody').empty()
-    theadGenerator(store.students[0].assessments[term])
-    for (const student of store.students) {
-      tbodyGenerator(student, term)
+    try {
+      theadGenerator(store.students[0].assessments[term])
+      $('tbody').empty()
+      for (const student of store.students) {
+        tbodyGenerator(student, term)
+      }
+    } catch (err) {
+      if (err instanceof TypeError) {
+        theadGenerator([])
+        $('tbody').empty()
+        for (const student of store.students) {
+          tbodyGenerator(student, term)
+        }
+      }
+      else {
+        console.log(err)
+      }
     }
   }
 
@@ -697,17 +689,18 @@
                         ${ obj.assessment_desc }
                       </span>
                     </th>
-    `            
-    const icons = `
+                  `            
+      const icons = `
                     <span>
                       <i class="fas fa-pen editBtn text-primary ml-1" ></i>
                       <i class="fas fa-trash preDeleteBtn text-danger ml-1" data-toggle="modal" data-target=".bd-example-modal-sm"></i>
                     </span>
-    `     
-    const th = $(thx2)
-    th.append(icons)
-    tr.append(th[0])
+                  `     
+      const th = $(thx2)
+      th.append(icons)
+      tr.append(th[0])
     })
+    $('thead').empty()
     $('thead')[0].append(tr[0])
   }
 
