@@ -43,7 +43,83 @@ def home(request, user_school_id):
 
     students_count = Student.objects.filter(class_level__in=class_level_list).count()
     subject_count = subjects.count()
+    current_term = Term.objects.get(current_term=True)
+    current_session = current_term.session
 
+    chart_bg_color = ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#d2d6de', '#3c8dbc', '#ffe4e1', '#696969',
+    '#8b0000', '#006400', '#000080', '#4b0082', '#ff4500', '#c71585', '#008080', '#bdb76b', '#800000', '#faebd7',
+     '#2f4f4f', '#dc143c', '#008000', '#4169e1', '#800080', '#ff6347', '#ff1493', '#db7093', '#ff8c00', '#ff7f50',
+      '#20b2aa', '#5f9ea0', '#00ced1', '#48d1cc', '#ffd700', '#ffdab9', '#f0e68c', '#fafad2', '#a52a2a',
+       '#8b4513', '#d2691e', '#a0522d', '#b8860b', '#cd853f', '#bc8f8f', '#daa520', '#f4a460', '#d2b48c', 
+       '#fff8dc', '#000', '#ffebcd', '#fff', '#ffdead', '#ffa500', '#ffc0cb', '#ff69b4', '#e6e6fa', '#d8bfd8',
+        '#dda0dd', '#ee82ee', '#9370db', '#ba55d3', '#6a5acd', '#ff00ff', '#7b68ee', '#9932cc', '#fffafa', 
+        '#a9a9a9', '#fffff0', '#708090', '#f0fff0', '#808080', '#f0ffff', '#dcdcdc', '#ffa07a', '#c0c0c0', 
+        '#cd5c5c', '#ff0000', '#e9967a', '#556b2f', '#228b22', '#2e8b57', '#808000', '#6b8e23', '#3cb371', 
+        '#b0e0e6', '#98fb98', '#4682b4', '#adff2f', '#4169e1', '#191970', '#9acd32', '#66cdaa', '#8fbc8f',
+         '#6495ed'
+        ]
+
+    subject_students_dict = {}
+    subject_assessments_label_dict = {}
+    subject_bg_color_dict = {}
+    subject_student_assessment_scores_dict = {}
+    subject_assessment_type_desc_dict = {}
+
+    assessment_count = 0
+    for subject in subjects:
+        
+        student_list = []
+        assessments_label_list = []
+        student_assessments_list = []
+        student_assessment_score_list = []
+        assessment_type_list = []
+
+        students = subject.class_level.student_set.all()
+        if students.exists():
+            assessments = StudentAssessment.objects.filter(term=current_term, student=students[0], subject=subject)
+
+            for assessment_desc in assessments:
+                assessments_label_list.append(assessment_desc.assessment_desc)
+                assessment_type_list.append(assessment_desc.assessment_type)
+            
+            assessment_type_distinct = list()
+            map(lambda x: not x in assessment_type_distinct and assessment_type_distinct.append(x), assessment_type_list)
+            
+            assessment_type_dict = {}
+            for assessment_type in assessment_type_distinct:
+                assessment_type_desc_list = []
+                for assessment in assessments:
+                    if assessment.assessment_type == assessment_type:
+                        assessment_type_desc_list.append(assessment.assessment_desc)
+                    
+                    assessment_type_dict[assessment_type] = assessment_type_desc_list
+
+            subject_assessment_type_desc_dict[(subject.id,subject.subject_name)] = assessment_type_dict    
+
+            assessment_desc_no = len(assessments_label_list)
+            color_set = chart_bg_color[0:assessment_desc_no]
+            subject_bg_color_dict[subject.id] = color_set
+            subject_assessments_label_dict[subject.id] = assessments_label_list
+        
+            for student in students:
+                score_list = []
+                student_list.append(student.user.school_id)
+                student_assessments = StudentAssessment.objects.filter(term=current_term, student=student, subject=subject)
+                for score in student_assessments:
+                    score_list.append(score.score)
+                student_assessments_list.append(score_list)
+
+            for i in list(zip(*student_assessments_list)):
+                student_assessment_score_list.append(str(list(i)))
+
+            subject_student_assessment_scores_dict[(subject.id,subject.subject_name)] = student_assessment_score_list
+                
+
+            subject_students_dict[subject.id] = student_list
+
+        assessment_count = assessment_count + assessments.count()
+        
+       
     context = {
         "user": user,
         "user_school_id": request.session.get("user_school_id"),
@@ -52,7 +128,14 @@ def home(request, user_school_id):
         "user_other_names": request.session.get("user_other_names"),
         "students_count": students_count,
         "subject_count": subject_count,
+        "assessment_count": assessment_count,
         "subjects": subjects,
+        "current_session": current_session,
+        "current_term": current_term,
+        "subject_students_dict": subject_students_dict,
+        "subject_assessments_label_dict": subject_assessments_label_dict,
+        "subject_bg_color_dict": subject_bg_color_dict,
+        "subject_student_assement_scores_dict": subject_student_assessment_scores_dict
     }
 
     return render(request, "staff_templates/home_template.html", context)

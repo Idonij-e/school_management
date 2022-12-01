@@ -207,7 +207,7 @@ def payment_pdf(request, *args, **kwargs):
     html_string = render_to_string(template_path, context)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
 
-    result = html.write_pdf(presentational_hints=True)
+    result = html.write_pdf(stylesheets=[CSS(settings.STATIC_ROOT + 'payment/pdf.css')],presentational_hints=True)
 
     with tempfile.NamedTemporaryFile(delete=True) as output:
         output.write(result)

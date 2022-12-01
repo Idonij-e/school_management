@@ -32,14 +32,30 @@
         {% comment %} Adding Form with All inputs Here {% endcomment %}
 
         {% for field in form %}
-            <div class="form-group">
+        {% if field == form.password %}
+        <div class="form-group">
 
-                {{ field.errors }}
-                {{ field.label_tag }}
+            {{ field.errors }}
+            {{ field.label_tag }}
+            <div class="input-group mb-3">
                 {{ field }}
-
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <span class="fas fa-eye" style="cursor: pointer; color: #7a797e" id="eye" onclick="toggle()"></span>
+                    </div>
+                </div>
             </div>
-        {% endfor %%}
+        </div>
+    {% else %}
+        <div class="form-group">
+
+            {{ field.errors }}
+            {{ field.label_tag }}
+            {{ field }}
+
+        </div>
+    {% endif %}
+        {% endfor %}
 
         
 

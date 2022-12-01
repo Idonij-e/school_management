@@ -49,7 +49,7 @@ class AddStudentForm(forms.Form):
     last_name = forms.CharField(label="Last Name", max_length=50, widget=forms.TextInput(attrs={"class":"form-control"}))
     other_names = forms.CharField(label="Other Names", required=False, max_length=50, widget=forms.TextInput(attrs={"class":"form-control"}))
     email = forms.EmailField(label="Email", max_length=50, required=False, widget=forms.EmailInput(attrs={"class":"form-control"}))
-    password = forms.CharField(label="Password", max_length=50, widget=forms.PasswordInput(attrs={"class":"form-control"}))
+    password = forms.CharField(label="Password", max_length=50, widget=forms.PasswordInput(attrs={"class":"form-control", "id": "id_password"}))
     phone_number = forms.CharField(label="Phone Number", required=False, max_length=13, widget=forms.TextInput(attrs={"class":"form-control"}))
     address = forms.CharField(label="Address", max_length=50, required=False, widget=forms.TextInput(attrs={"class":"form-control"}))
     
