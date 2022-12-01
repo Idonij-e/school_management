@@ -207,13 +207,25 @@
         datasets: [
           {
             data: subject_count_list,
-            backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
+            backgroundColor : {{ colors|safe }},
           }
         ]
       }
       var donutOptions     = {
         maintainAspectRatio : false,
         responsive : true,
+        plugins: {
+          labels : {
+            render: (args) => {
+              if(args.percentage > 10){
+                return `${args.label} : ${args.value} number`
+              }
+            }
+          }
+        },
+        legend: {
+          display : false
+        }
       }
       //Create pie or douhnut chart
       // You can switch between pie and douhnut using the method below.
@@ -232,7 +244,7 @@
         datasets: [
           {
             data: student_count_list_in_class_level,
-            backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
+            backgroundColor : {{ colors|safe }},
           }
         ]
       }
@@ -246,6 +258,18 @@
       var pieOptions2     = {
         maintainAspectRatio : false,
         responsive : true,
+        plugins: {
+          labels : {
+            render: (args) => {
+              if(args.percentage > 10){
+                return `${args.label} : ${args.value} number`
+              }
+            }
+          }
+        },
+        legend: {
+          display : false
+        }
       }
 
       var pieChart2 = new Chart(pieChartCanvas2, {
