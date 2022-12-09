@@ -1,3 +1,4 @@
+from re import sub
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
@@ -22,8 +23,9 @@ from http.client import HTTPResponse
 from django.template.loader import get_template, render_to_string
 from weasyprint import HTML, CSS
 import tempfile
-#import asyncio
-#from pyppeteer import launch
+
+# import asyncio
+# from pyppeteer import launch
 
 
 def home(request, user_school_id):
@@ -202,42 +204,68 @@ def payment_pdf(request, *args, **kwargs):
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = 'inline; filename="payment.pdf"'
-    response["Content-Transfer-Encoding"] = 'binary' 
+    response["Content-Transfer-Encoding"] = "binary"
 
     html_string = render_to_string(template_path, context)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
 
-    result = html.write_pdf(stylesheets=[CSS(settings.STATIC_ROOT + 'payment/pdf.css')],presentational_hints=True)
+    result = html.write_pdf(
+        stylesheets=[CSS(settings.STATIC_ROOT + "payment/pdf.css")],
+        presentational_hints=True,
+    )
 
     with tempfile.NamedTemporaryFile(delete=True) as output:
         output.write(result)
         output.flush()
 
-        output = open(output.name, 'rb')
+        output = open(output.name, "rb")
         response.write(output.read())
 
     return response
 
-    #template = get_template(template_path)
-    #html = template.render(context)
+    # template = get_template(template_path)
+    # html = template.render(context)
 
 
-
-
-def student_view_result(request, user_school_id):
+def student_view_result(request, user_school_id, session_id):
     user = User.objects.get(school_id=user_school_id)
-    # student=Student.objects.get(user=request.user.id)
-    studentresult = StudentResult.objects.filter(student=user.id)
-
+    session = Session.objects.get(id=session_id)
+    terms = session.term_set.all()
+    assessments = StudentAssessment.objects.filter(
+        student=user.student, session=session
+    )
+    subjects = Subject.objects.filter(
+        studentassessment__student=user.student, studentassessment__session=session
+    ).distinct()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user": user,
         "user_school_id": user_school_id,
-        "studentresult": studentresult,
+        "terms": terms,
+        "subjects": subjects,
+        "assessments": assessments,
     }
     return render(request, "student_templates/student_result.html", context)
 
 
 def payment_status(request, payment_ref):
     return HttpResponse("successfully, payment reference: " + payment_ref)
+
+
+def grade_card(request, user_school_id):
+    user = User.objects.get(school_id=user_school_id)
+    assessments = StudentAssessment.objects.filter(student=user.student)
+    temp_session_list = []
+
+    def unique(x):
+        if x.session not in temp_session_list:
+            temp_session_list.append(x.session)
+            return x
+
+    filtered_assessments = filter(unique, assessments)
+
+    context = {
+        "user_school_id": user.school_id,
+        "filtered_assessments": filtered_assessments,
+    }
+
+    return render(request, "student_templates/grade_card.html", context)

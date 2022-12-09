@@ -60,7 +60,11 @@
   {% block custom_js %}
 
     <script>
+                console.log('lllllllllllllllll')
         $('form').submit(function(e) {
+        $("#class_level").prop('disabled', true)
+        console.log($("#class_level"))
+        console.lot('lllllllllllllllll')
         passwordEle = document.getElementById('id_password')       
         phoneNumEle = document.getElementById('id_phone_number')
 
@@ -104,7 +108,6 @@
             }
         }
 
-        $("#class_level").prop('disabled', false)
             
         validatePassword(passwordEle.value)
         validatePhoneNum(phoneNumEle.value) 
@@ -113,5 +116,4 @@
         });
 
     </script>
-    
 {% endblock custom_js %}

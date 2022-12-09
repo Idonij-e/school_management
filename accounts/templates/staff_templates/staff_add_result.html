@@ -79,11 +79,8 @@
               name="term"
               id="term"
             >
-              {% for term in current_session.term_set.all %}
-              <option value="{{ term.id }}" >
-                {{ term }}
+              <option  >
               </option>
-              {% endfor %}
             </select>
             <br />&nbsp;
           </div>
@@ -623,6 +620,7 @@
     $.get("{% url 'get_students_assessment' user_school_id %}", {sessionId, subjectId: {{ subject.id }} })
     .done((res) => {
       store.students = res.students
+      store.current_term_id = res.current_term_id 
       updateTerms(res.terms, currentSessionId, currentTermId)
       createStudentAssementEntries()
     })
@@ -635,6 +633,9 @@
   function updateTerms(termsObj, currentSessionId, currentTermId) {
     const termSelectEl = $('#term').empty()
     for (const termKey in Object.keys(termsObj)) {
+      
+      if (termsObj[termKey].id <= store.current_term_id) {
+
       const term = termsObj[termKey]
       const optionx = `
               <option value="${term.id}">
@@ -646,6 +647,7 @@
       if (currentSessionId && currentTermId) {
           $("#session").children(`[value="${currentSessionId}"]`).attr('selected', true)
           $("#term").children(`[value="${currentTermId}"]`).attr('selected', true)
+      }
       }
     }
   }

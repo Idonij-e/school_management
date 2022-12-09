@@ -76,20 +76,103 @@ def home(request, **kwargs):
     for student in students:
         student_name_list.append(student.user.first_name)
 
-    chart_bg_color = ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#d2d6de', '#3c8dbc', '#ffe4e1', '#696969',
-    '#8b0000', '#006400', '#000080', '#4b0082', '#ff4500', '#c71585', '#008080', '#bdb76b', '#800000', '#faebd7',
-     '#2f4f4f', '#dc143c', '#008000', '#4169e1', '#800080', '#ff6347', '#ff1493', '#db7093', '#ff8c00', '#ff7f50',
-      '#20b2aa', '#5f9ea0', '#00ced1', '#48d1cc', '#ffd700', '#ffdab9', '#f0e68c', '#fafad2', '#a52a2a',
-       '#8b4513', '#d2691e', '#a0522d', '#b8860b', '#cd853f', '#bc8f8f', '#daa520', '#f4a460', '#d2b48c', 
-       '#fff8dc', '#000', '#ffebcd', '#fff', '#ffdead', '#ffa500', '#ffc0cb', '#ff69b4', '#e6e6fa', '#d8bfd8',
-        '#dda0dd', '#ee82ee', '#9370db', '#ba55d3', '#6a5acd', '#ff00ff', '#7b68ee', '#9932cc', '#fffafa', 
-        '#a9a9a9', '#fffff0', '#708090', '#f0fff0', '#808080', '#f0ffff', '#dcdcdc', '#ffa07a', '#c0c0c0', 
-        '#cd5c5c', '#ff0000', '#e9967a', '#556b2f', '#228b22', '#2e8b57', '#808000', '#6b8e23', '#3cb371', 
-        '#b0e0e6', '#98fb98', '#4682b4', '#adff2f', '#4169e1', '#191970', '#9acd32', '#66cdaa', '#8fbc8f',
-         '#6495ed'
-        ]
+    chart_bg_color = [
+        "#f56954",
+        "#00a65a",
+        "#f39c12",
+        "#00c0ef",
+        "#d2d6de",
+        "#3c8dbc",
+        "#ffe4e1",
+        "#696969",
+        "#8b0000",
+        "#006400",
+        "#000080",
+        "#4b0082",
+        "#ff4500",
+        "#c71585",
+        "#008080",
+        "#bdb76b",
+        "#800000",
+        "#faebd7",
+        "#2f4f4f",
+        "#dc143c",
+        "#008000",
+        "#4169e1",
+        "#800080",
+        "#ff6347",
+        "#ff1493",
+        "#db7093",
+        "#ff8c00",
+        "#ff7f50",
+        "#20b2aa",
+        "#5f9ea0",
+        "#00ced1",
+        "#48d1cc",
+        "#ffd700",
+        "#ffdab9",
+        "#f0e68c",
+        "#fafad2",
+        "#a52a2a",
+        "#8b4513",
+        "#d2691e",
+        "#a0522d",
+        "#b8860b",
+        "#cd853f",
+        "#bc8f8f",
+        "#daa520",
+        "#f4a460",
+        "#d2b48c",
+        "#fff8dc",
+        "#000",
+        "#ffebcd",
+        "#fff",
+        "#ffdead",
+        "#ffa500",
+        "#ffc0cb",
+        "#ff69b4",
+        "#e6e6fa",
+        "#d8bfd8",
+        "#dda0dd",
+        "#ee82ee",
+        "#9370db",
+        "#ba55d3",
+        "#6a5acd",
+        "#ff00ff",
+        "#7b68ee",
+        "#9932cc",
+        "#fffafa",
+        "#a9a9a9",
+        "#fffff0",
+        "#708090",
+        "#f0fff0",
+        "#808080",
+        "#f0ffff",
+        "#dcdcdc",
+        "#ffa07a",
+        "#c0c0c0",
+        "#cd5c5c",
+        "#ff0000",
+        "#e9967a",
+        "#556b2f",
+        "#228b22",
+        "#2e8b57",
+        "#808000",
+        "#6b8e23",
+        "#3cb371",
+        "#b0e0e6",
+        "#98fb98",
+        "#4682b4",
+        "#adff2f",
+        "#4169e1",
+        "#191970",
+        "#9acd32",
+        "#66cdaa",
+        "#8fbc8f",
+        "#6495ed",
+    ]
 
-    color_set = chart_bg_color[0:int(class_level_count)]
+    color_set = chart_bg_color[0 : int(class_level_count)]
 
     context = {
         "user_school_id": request.session.get("user_school_id"),
@@ -672,7 +755,7 @@ def manage_class_add_student(request, user_school_id, class_level_name):
     # Filling the form with Data from request.session object when
     # add_student view is accessed via manage_class > manage_students
     form.fields["class_level_id"].initial = class_level.id
-    form.fields["class_level_id"].disabled = True
+    # form.fields["class_level_id"].disabled = True
 
     context = {
         "user_first_name": request.session.get("user_first_name"),
@@ -1385,12 +1468,12 @@ def change_class_level_save(request, user_school_id):
                 student.is_old = True
                 student.save()
 
-            msg_student_moved = False
+            msg_student_moved = []
             msg_student_not_moved = []
             for student_school_user_id in data.get("students"):
                 new_student = User.objects.get(school_id=student_school_user_id)
                 if new_student.student.current_session == current_session:
-                    msg_student_not_moved.append(str(new_student.student))
+                    msg_student_not_moved.append(str(new_student.school_id))
                     continue
                 new_student.student.is_old = False
                 new_student.student.student_status = 1
@@ -1420,17 +1503,26 @@ def change_class_level_save(request, user_school_id):
 
                 new_student.student.class_level = new_class
                 new_student.save()
-                msg_student_moved = True
+                msg_student_moved.append(str(new_student.school_id))
 
-        if msg_student_moved:
-            messages.success(request, "Student(s) moved successfully")
+        if len(msg_student_not_moved) == 0:
+            messages.success(request, "successfully moved all students")
 
-        if len(msg_student_not_moved) > 0:
+        if len(msg_student_moved) > 0 and len(msg_student_not_moved) > 0:
+            messages.success(
+                request, "successfully moved {}.".format((", ").join(msg_student_moved))
+            )
             messages.error(
                 request,
                 "failed to move {}, please change the current session before changing class.".format(
                     (", ").join(msg_student_not_moved)
                 ),
+            )
+
+        if len(msg_student_moved) == 0:
+            messages.error(
+                request,
+                "failed to move all students, please change the current session before changing class.",
             )
 
     except Exception as e:

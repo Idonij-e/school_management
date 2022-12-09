@@ -117,8 +117,8 @@
             </li>
 
             <li class="nav-item">
-              {% url 'student_view_result' user_school_id as student_view_result %}
-              <a href="{{ student_view_result }}" class="nav-link {% if request.path == student_view_result %} active {% endif %}">
+              {% url 'grade_card' user_school_id as grade_card %}
+              <a href="{{ grade_card }}" class="nav-link {% if request.path == grade_card %} active {% endif %}">
                 <i class="nav-icon fas fa-th"></i>
                 <p>
                   Grade Card

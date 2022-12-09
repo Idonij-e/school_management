@@ -1,4 +1,21 @@
-{% extends 'student_template/base_template.html' %}
+{% extends 'student_templates/base_template.html' %}
+{% block custom_css %}
+  <style>
+    th {
+      padding: 20px;
+      text-align: center;
+    }
+    td {
+      padding: 20px;
+      text-align: center;
+    }
+
+    table th:nth-of-type(1),
+    table td:nth-of-type(1) {
+      text-align: left;
+    }
+  </style>
+{% endblock custom_css %}
 {% block page_title %}
 Result
 {% endblock page_title %}
@@ -11,40 +28,39 @@ Result
             <!-- general form elements -->
 
             <!-- /.card -->
-           <div class="card card-primary">
-              <div class="card-header">
-                <h3 class="card-title">Result</h3>
-              </div>
-
-               <div class="table">
-               <table class="table">
-                   <tr>
-                       <th>ID</th>
-                       <th>Subject</th>
-                       <th>1st Test Marks</th>
-                       <th>2nd Test Marks</th>
-                       <th>Exam Marks</th>
-                       <th>Status</th>
-                   </tr>
-                   {% for row in studentresult %}
-                        <tr>
-                            <td>{{ row.id }}</td>
-                            <td>{{ row.subject_id.subject_name }}</td>
-                            <td>{{ row.subject_test_one_marks }}</td>
-                            <td>{{ row.subject_test_two_marks }}</td>
-                            <td>{{ row.subject_exam_marks }}</td>
-                            <td>
-                                {% if row.subject_exam_marks+row.subject_test_one_marks+row.subject_test_two_marks >= 40 %}
-                                <span class="alert alert-success">PASS</span>
-                                {% else %}
-                                 <span class="alert alert-danger">FAIL</span>
+            {% for term in terms %}
+              {% if term.studentassessment_set.exists and user.student.term_enrolled.id <= term.id %}
+                <div class="card card-primary">
+                    <div class="card-header">
+                      <h3 class="card-title">{{term}}</h3>
+                    </div>
+                    
+                    {% for subject in subjects %}
+                    <div class=" ">
+                      <table class="" cellpadding="0px">
+                          <tr>
+                              <th class="">Subject</th>
+                              {% for assessment in assessments %}
+                                {% if assessment.term == term and assessment.subject == subject %}
+                                <th class="">{{ assessment.assessment_desc }}</th>
                                 {% endif %}
-                            </td>
-                        </tr>
-                   {% endfor %}
-               </table>
-               </div>
-            </div>
+                              {% endfor %}
+                          </tr>
+                            <tr>
+                              <td>{{subject.subject_name}}</td>
+                                {% for assessment in assessments %} 
+                                  {% if assessment.term == term and assessment.subject == subject %}
+                                    <td class="">{{assessment.score}}</td>
+                                  {% endif %}
+                                {% endfor %}
+                            </tr>
+                      </table>
+                    </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+            {% endfor %}
 
 
 

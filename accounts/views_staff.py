@@ -219,71 +219,6 @@ def get_students(request):
     )
 
 
-def save_student_resultd(request, user_school_id):
-    if request.method != "POST":
-        # return HttpResponseRedirect('staff_add_result')
-        return redirect("/" + user_school_id + "/staff_add_result")
-    student_admin_id = request.POST.get("student_list")
-    # assignment_marks=request.POST.get('assignment_marks')
-    test_one_marks = request.POST.get("test_one_marks")
-    test_two_marks = request.POST.get("test_two_marks")
-    exam_marks = request.POST.get("exam_marks")
-    subject_id = request.POST.get("subject")
-
-    student_obj = Student.objects.get(user=student_admin_id)
-    subject_obj = Subject.objects.get(id=subject_id)
-
-    try:
-        check_exist = StudentResult.objects.filter(
-            subject=subject_obj, student=student_obj
-        ).exists()
-        if check_exist:
-            result = StudentResult.objects.get(subject=subject_obj, student=student_obj)
-            # result.subject_assignment_marks=assignment_marks
-            result.subject_test_one_marks = test_one_marks
-            result.subject_test_two_marks = test_two_marks
-            result.subject_exam_marks = exam_marks
-            result.save()
-            messages.success(request, "Successfully Updated Result")
-            # return HttpResponseRedirect(reverse("staff_add_result"))
-            return redirect("/" + user_school_id + "/staff_add_result")
-        else:
-            result = StudentResult(
-                student=student_obj,
-                subject=subject_obj,
-                subject_exam_marks=exam_marks,
-                subject_test_one_marks=test_one_marks,
-                subject_test_two_marks=test_two_marks,
-            )
-            result.save()
-            messages.success(request, "Successfully Added Result")
-            # return HttpResponseRedirect(reverse("staff_add_result"))
-            return redirect("/" + user_school_id + "/staff_add_result")
-    except:
-        messages.error(request, "Failed to Add Result")
-        # return HttpResponseRedirect(reverse("staff_add_result"))
-        return redirect("/" + user_school_id + "/staff_add_result")
-
-
-@csrf_exempt
-def fetch_result_student(request):
-    subject_id = request.POST.get("subject_id")
-    student_id = request.POST.get("student_id")
-    student_obj = Student.objects.get(user=student_id)
-    result = StudentResult.objects.filter(
-        student=student_obj.id, subject=subject_id
-    ).exists()
-    if result:
-        result = StudentResult.objects.get(student=student_obj.id, subject=subject_id)
-        result_data = {
-            "exam_marks": result.subject_exam_marks,
-            "test_one_marks": result.subject_test_one_marks,
-            "test_two_marks": result.subject_test_two_marks,
-        }
-        return HttpResponse(json.dumps(result_data))
-    else:
-        return HttpResponse("False")
-
 
 def view_subjects(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
@@ -368,6 +303,7 @@ def get_students_assessment(request, user_school_id):
     current_session = Session.objects.get(current_session=True)
     subject = Subject.objects.get(id=subject_id)
     terms = Session.objects.get(id=session_id).term_set.all()
+    current_term = Term.objects.get(current_term=True)
 
     if current_session.id == int(session_id):
         students = subject.class_level.student_set.all()
@@ -379,6 +315,7 @@ def get_students_assessment(request, user_school_id):
     data = {
         "terms": list(terms.values()),
         "students": [],
+        "current_term_id": current_term.id
     }
 
     for student in list(students.values()):
@@ -392,7 +329,7 @@ def get_students_assessment(request, user_school_id):
         }
         for term in terms:
             student_data["assessments"][term.id] = list(
-                student_user.student.studentassessment_set.filter(term=term).values()
+                student_user.student.studentassessment_set.filter(term=term, subject=subject).values()
             )
         data["students"].append(student_data)
 
