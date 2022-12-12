@@ -135,7 +135,9 @@
                 <div>
                         <a class="btn btn-primary" href="{% url 'staff_subjects' user_school_id %}" role="button">Back to Subjects</a> <br/>&nbsp;
                 </div>
-                <div>
+                <div id="selected_session_term">
+                  {{ current_session}} {{current_term}}
+                </div>
                 <div class="input-group input-group-sm" style="width: 150px">
                   <form action="" method="post">
                     {% csrf_token %}
@@ -153,7 +155,6 @@
                       </button>
                     </div>
                   </form>
-                </div>
                 </div>
             </div>
 
@@ -210,6 +211,7 @@
 {% block custom_js %}
 
 <script>
+
   // state store for page
   let store = {}
 
@@ -218,7 +220,6 @@
   tempTable.dataset.newAssessments = JSON.stringify([])
   tempTable.dataset.editedAssessments = JSON.stringify([])
   tempTable.dataset.deletedAssessments = JSON.stringify([])
-
 
   /*
   on click of add assessment button
@@ -319,8 +320,7 @@
     adds assessment-id data attributes to respective elements
     adds edited assessment title to edited-assessments data attribute of table tag
   */
-  $('.editBtn').on('click', function(e) {
-
+  $(document).on('click', '.editBtn', function(e) {
     // get title element
     let titleEl = e.target.parentElement.parentElement.getElementsByClassName('assessmentTitle')[0]
     let assessmentTitle = titleEl.dataset.assessmentTitle
@@ -604,16 +604,25 @@
   const currentTermId = {{current_term.id}}
   get_session_assessments("", currentSessionId, currentTermId)
 
+
   // on change of session
   // send ajax request for term data
   // and assessments for that session
   $('#session').on('change', (e) => {
     let selected_session = e.target.value
     get_session_assessments(selected_session)
+    e.target.querySelector(`[selected="selected"]`).removeAttribute('selected')
+    e.target.querySelector(`[value="${selected_session}"]`).setAttribute('selected', 'selected')
+    const sessionName = e.target.querySelector(`[value="${selected_session}"]`).innerText.trim()
+    const termName = document.getElementById('term').getElementsByTagName('option')[0].innerText.trim()
+    document.getElementById('selected_session_term').innerText = `${sessionName} ${termName}`
   })
 
   $('#term').on('change', (e) => {
     createStudentAssementEntries()  
+    const sessionName = document.getElementById('session').querySelector(`[selected="selected"]`).innerText.trim()
+    const termName = e.target.querySelector(`[value="${e.target.value}"]`).innerText.trim()
+    document.getElementById('selected_session_term').innerText = `${sessionName} ${termName}`
   })
 
   function get_session_assessments(sessionId, currentSessionId=false, currentTermId=false) {
@@ -625,7 +634,7 @@
       createStudentAssementEntries()
     })
     .fail((res) => {
-      console.log("Failed bro")
+      console.log("Failed")
     })
   } 
 

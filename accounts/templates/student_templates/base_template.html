@@ -149,6 +149,15 @@
 <script src="{% static 'dist/js/pages/dashboard.js'  %}"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js'  %}"></script>
+<!-- pdfmake -->
+<!-- <script src="{% static 'pdfmake/pdfmake.js'  %}"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.6/pdfmake.min.js"></script>
+<!-- vfs_fonts -->
+<script src="{% static 'pdfmake/vfs_fonts.min.js'  %}"></script>
+<!-- html2canvas -->
+<!-- <script src="{% static 'html2canvas/html2canvas.min.js' %}"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 
 {% comment %} For Custom JS {% endcomment %}
 {% block custom_js %}

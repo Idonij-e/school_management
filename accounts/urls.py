@@ -7,6 +7,7 @@ urlpatterns = [
     path("", views.login_page, name="login_page"),
     path("doLogin", views.do_login, name="do_login"),
     path("logout_user/", views.logout_user, name="logout_user"),
+    
     # ADMINISTRATOR
     path("<user_school_id>/admin_home", views_admin.home, name="admin_home"),
     path("<user_school_id>/profile", views_admin.profile, name="admin_profile"),
@@ -219,6 +220,7 @@ urlpatterns = [
         views_admin.manage_students_left,
         name="manage_students_left",
     ),
+    
     # STAFF
     path("<user_school_id>/staff_home", views_staff.home, name="staff_home"),
     path("<user_school_id>/staff_profile", views_staff.profile, name="staff_profile"),
@@ -254,6 +256,8 @@ urlpatterns = [
         name="save_student_result",
     ),
     path("<user_school_id>/subjects", views_staff.view_subjects, name="staff_subjects"),
+
+
     # STUDENT
     path("<user_school_id>/student_home", views_student.home, name="student_home"),
     path(

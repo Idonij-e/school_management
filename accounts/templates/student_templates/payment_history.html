@@ -30,7 +30,7 @@
                                 </div>
           {% endif %}
           
-          <div class="row">
+          <div class="row" id="exportthis">
               <div class="col-md-12">
             <!-- general form elements -->
             <div class="card card-primary">
@@ -67,7 +67,7 @@
                     {{ payment.fee_id.term }}
                   </td>
                     <td>
-                      <a href="{% url 'payment_pdf' payment.ref %}" class="btn btn-sm btn-secondary">Download PDF</a>
+                      <a href="" id="downloadBtn" class="btn btn-sm btn-secondary">Download PDF</a>
                     </td>
                   </tr>
               {% endfor %}
@@ -89,3 +89,36 @@
     </section>
     <!-- /.content -->
     {% endblock main_content %}
+
+    {% block custom_js %}
+
+    <script>
+        $('#downloadBtn').click(e=> {
+          e.preventDefault()
+          
+          const a = async () => {
+            try {
+              const b = await html2canvas(document.getElementById('exportthis'), {
+                onrendered: function (canvas) {
+                  var data = canvas.toDataURL();
+                  var docDefinition = {
+                      content: [{
+                          image: data,
+                          width: 500,
+                      }]
+                  };
+                  pdfMake.createPdf(docDefinition).download("Score_Details.pdf");
+                }
+              });
+              // console.log(b)
+            } catch(err) {
+              console.log(err)
+            }
+          }
+
+          a()
+      })
+
+    </script>
+    
+    {% endblock custom_js %}

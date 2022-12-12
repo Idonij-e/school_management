@@ -1,3 +1,4 @@
+{% load static %}
 {% load custom_filters_tags %}
 
 <html>
@@ -6,7 +7,6 @@
     <meta charset="utf-8" />
 
     <title>Payment Receipt | PDF Download</title>
-    <link rel="stylesheet" href="{% static 'payment/pdf.css'  %}">
     <!-- <style>
       @page{
         size: A4;
@@ -173,6 +173,7 @@
       }
 
     </style> -->
+    <link rel="stylesheet" href="{% static 'payment/pdf.css' %}">
   </head>
   <body>
     <div>

@@ -210,7 +210,7 @@ def payment_pdf(request, *args, **kwargs):
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
 
     result = html.write_pdf(
-        stylesheets=[CSS(settings.STATIC_ROOT + "payment/pdf.css")],
+        stylesheets=[CSS((settings.STATIC_ROOT + "/payment/pdf.css"))],
         presentational_hints=True,
     )
 

@@ -82,8 +82,8 @@ Manage Fee
                       <td>{{ fee.term }}</td>
                       <td>{{ fee.custom_id }}</td>
                       <td>
-                        <a href="{% url 'edit_fee' user_school_id fee.custom_id %}" class="btn btn-success">Edit</a>
-                        <a href="#" data-href="{% url 'delete_fee' user_school_id fee.custom_id %}" class="btn btn-danger preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm">Delete</a>
+                        <a href="{% url 'edit_fee' user_school_id fee.id %}" class="btn btn-success">Edit</a>
+                        <a href="#" data-href="{% url 'delete_fee' user_school_id fee.id %}" class="btn btn-danger preDeleteBtn" data-toggle="modal" data-target=".bd-example-modal-sm">Delete</a>
                       </td>
                     </tr>
                   {% endfor %}
