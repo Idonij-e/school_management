@@ -135,20 +135,7 @@
                 </thead>
 
                 <tbody>
-                  {% for student in students %}
-                    <tr>
-                        <td>{{ student.user.school_id }}</td>
-                        <td>{{ student.user.last_name }} {{ student.user.first_name }} {{ student.user.other_names }}</td>
-                        {% for assessment in student|order_assessments:assessments_type_and_number %}
-                            <td class="text-center">
-                                <span class="score" data-assessment-title="{{ assessment.assessment_desc }}" data-assessment-id="{{ assessment.id }}">
-                                    {{ assessment.score }}
-                                </span>
-                            </td>
-                        {% endfor %}
-                        <td class="final_score text-center"></td>
-                    </tr>
-                  {% endfor %}
+
                 </tbody>
               </table>
             <div id="results"></div>
@@ -283,7 +270,7 @@
                   `
         $('#thead-row1')[0].append($(thx1)[0])
         for (let assessment of assessment_desc[key]) {
-          thx2 = `<th class="text-center">${assessment}</th>`
+          thx2 = `<th class="text-center" data-assessment-title="${assessment}">${assessment}</th>`
           $('#thead-row2')[0].append($(thx2)[0])
         }
       }
@@ -307,15 +294,20 @@
                       
                     </tr>`
       const tr = $(trx)
-      student.assessments[term].forEach(obj => {
-        score += obj.score
-        const tdx = `<td class="text-center">
-                        <span class="score" data-assessment-title="${obj.assessment_desc}" data-assessment-id="${obj.id}">
-                            ${obj.score}
-                        </span>
-                      </td>`
-        tr.append(tdx)
-      })
+      let a = $('#thead-row2')[0].children
+      for (let _ in Object.keys(a)) {
+        student.assessments[term].forEach(obj => {
+          if (a[_].dataset.assessmentTitle === obj.assessment_desc) {
+            score += obj.score
+            const tdx = `<td class="text-center">
+                    <span class="score" data-assessment-title="${obj.assessment_desc}" data-assessment-id="${obj.id}">
+                        ${obj.score}
+                    </span>
+                  </td>`
+            tr.append(tdx)
+          }
+        })
+      }
       const tdx = `<td class="final_score text-center">${score}</td>`
       tr.append(tdx)
       $('tbody')[0].append(tr[0])
