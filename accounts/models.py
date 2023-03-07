@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .utils import generate_school_id, save_user_photo
+from .utils import generate_school_id
 from .managers import UserManager
 import secrets
 from .paystack import PayStack
@@ -22,7 +22,8 @@ class User(AbstractUser):
     user_type = models.PositiveIntegerField(default=1, choices=user_type_data)
     other_names = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=100, blank=True, null=True)
-    profile_pic = models.ImageField(blank=True, null=True, upload_to=save_user_photo)
+    profile_pic = models.ImageField(blank=True, null=True)
+    profile_pic_url = models.CharField(max_length=255, blank=True, null=True)
     gender_data = ((1, "Female"), (2, "Male"))
     gender = models.PositiveIntegerField(default=1, choices=gender_data)
     phone_number = models.CharField(blank=True, null=True, max_length=14)
@@ -98,7 +99,13 @@ class Student(models.Model):
         ClassLevel, on_delete=models.DO_NOTHING, null=True, blank=True
     )
     is_old = models.BooleanField(default=False)
-    previous_class = models.ForeignKey(ClassLevel, on_delete=models.DO_NOTHING, blank=True, null=True, related_name="previous_class")
+    previous_class = models.ForeignKey(
+        ClassLevel,
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        related_name="previous_class",
+    )
     session_completed = models.CharField(max_length=200, blank=True, null=True)
     # gender = models.CharField(max_length=50)
     dob = models.DateField(null=True, blank=True)
@@ -109,7 +116,9 @@ class Student(models.Model):
     term_enrolled = models.ForeignKey(
         Term, on_delete=models.DO_NOTHING, blank=True, null=True
     )
-    current_session = models.ForeignKey(Session, on_delete=models.DO_NOTHING, null=True, blank=True)
+    current_session = models.ForeignKey(
+        Session, on_delete=models.DO_NOTHING, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -193,7 +202,9 @@ class StudentAssessment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.DO_NOTHING, null=True, blank=True)
-    session = models.ForeignKey(Session, on_delete=models.DO_NOTHING, null=True, blank=True)
+    session = models.ForeignKey(
+        Session, on_delete=models.DO_NOTHING, null=True, blank=True
+    )
     # assessment_choices = (
     #     (1, 'assignment'),
     #     (2, 'test'),

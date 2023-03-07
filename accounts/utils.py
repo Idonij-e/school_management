@@ -1,40 +1,124 @@
 from datetime import datetime
-from ntpath import join
 from sqlite3 import OperationalError as SQLOperationalError
-from types import NoneType
 from django.db.utils import OperationalError as DjangoOperationalError
-from django.contrib import messages
 import os
+from main.settings import MEDIA_ROOT
+from main.settings import FOLDER_ID
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+from googleapiclient.http import MediaFileUpload
+
+
 
 from main.settings import BASE_DIR
 
+import json
+import base64
+
+
 def generate_school_id():
-    from .models import User 
+    from .models import User
+
     try:
         current_year = datetime.now().year
         last_user_id = User.objects.last().id
-        return "B{}".format(str(current_year)[-2:]) + str(last_user_id+1+1000)
+        return "B{}".format(str(current_year)[-2:]) + str(last_user_id + 1 + 1000)
     except AttributeError:
         return "B0000000"
-    except SQLOperationalError: 
+    except SQLOperationalError:
         return "B0000000"
     except DjangoOperationalError:
         return "B0000000"
 
 
-def save_user_photo(instance, filename):
-    images_path = os.path.join(BASE_DIR, "media", "images")
-    for folder, subfolder, files in os.walk(images_path):
-        if instance.school_id in files:
-            os.remove(os.path.join(images_path, instance.school_id))
-    # file_extension = filename.split('.')[-1]
-    return "images/" + instance.school_id
+def upload_user_pic(school_id, profile_pic_url):
 
-def current_term(request, url_path):
-    from .models import Term
+    file_path = os.listdir(MEDIA_ROOT)[0]
+
+    SCOPES = ["https://www.googleapis.com/auth/drive"]
+
+    """
+    Shows basic usage of the Drive v3 API.
+    Prints the names and ids of the first 10 files the user has access to.
+    """
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "client_secret.json", SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
+
     try:
-        current_term = Term.objects.get(current_term=True)
-        return current_term
-    except Term.DoesNotExist:
-        messages.error(request, "Invalid Method!")
-        return redirect("/" + user_school_id + "/staff_profile")
+        service = build("drive", "v3", credentials=creds)
+
+        file_metadata = {"name": f"{school_id}", "parents": [FOLDER_ID]}
+
+        media = MediaFileUpload(
+            os.path.join(MEDIA_ROOT, file_path),
+            mimetype=f"image/{file_path.split('.')[-1]}",
+        )
+
+        if profile_pic_url:
+
+            file = (
+                service.files()
+                .update(
+                    fileId=profile_pic_url.split("=")[-1],
+                    media_body=media,
+                )
+                .execute()
+            )
+
+            return "https://drive.google.com/uc?id=" + file.get("id")
+
+        file = (
+            service.files()
+            .create(
+                body=file_metadata,
+                media_body=media,
+                fields="id",
+            )
+            .execute()
+        )
+
+        # print(f'File ID: {file.get("id")}')
+
+        # response = (
+        #     service.files()
+        #     .list(
+        #         q="mimeType = 'application/vnd.google-apps.folder'",
+        #         spaces="drive",
+        #         fields="nextPageToken, " "files(id, name)",
+        #     )
+        #     .execute()
+        # )
+        # print(response)
+        # for file in response.get("files", []):
+        #     # Process change
+        #     print(f'Found file: {file.get("name")}, {file.get("id")}')
+
+        return "https://drive.google.com/uc?id=" + file.get("id")
+
+    except HttpError as error:
+        # TODO(developer) - Handle errors from drive API.
+        print(f"An error occurred: {error}")
+
+    except Exception as e:
+        print(e)
+

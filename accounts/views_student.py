@@ -37,6 +37,7 @@ def home(request, user_school_id):
     request.session["user_first_name"] = user.first_name
     request.session["user_last_name"] = user.last_name
     request.session["user_other_names"] = user.other_names
+    request.session["user_profile_pic_url"] = user.profile_pic_url
 
     subjects = student.class_level.subject_set.all()
     course = ClassLevel.objects.get(id=student.class_level.id)
@@ -50,6 +51,7 @@ def home(request, user_school_id):
         "user_first_name": request.session.get("user_first_name"),
         "user_last_name": request.session.get("user_last_name"),
         "user_other_names": request.session.get("user_other_names"),
+        "user_profile_pic_url": request.session.get("user_profile_pic_url"),
         "subjects": subjects,
         "fee_term_one": fee_term_one,
         "fee_term_two": fee_term_two,
@@ -77,6 +79,7 @@ def profile(request, user_school_id):
         "user_first_name": request.session.get("user_first_name"),
         "user_last_name": request.session.get("user_last_name"),
         "user_other_names": request.session.get("user_other_names"),
+        "user_profile_pic_url": request.session.get("user_profilic_pic_url"),
         "student": student,
         "gender_data": user.gender_data,
         "fee_term_one": fee_term_one,
@@ -146,6 +149,7 @@ def initiate_payment(request, user_school_id, fee_id):
         "user_last_name": request.session.get("user_last_name"),
         "user_other_names": request.session.get("user_other_names"),
         "user_school_id": user_school_id,
+        "user_profile_pic_url": request.session.get("user_profilic_pic_url"),
         "fee": fee,
         "payment": payment_model,
         "paystack_public_key": settings.PAYSTACK_PUBLIC_KEY,
@@ -186,6 +190,7 @@ def payment_history(request, user_school_id):
         "user_last_name": request.session.get("user_last_name"),
         "user_other_names": request.session.get("user_other_names"),
         "user_school_id": user_school_id,
+        "user_profile_pic_url": request.session.get("user_profilic_pic_url"),
         "payment_all": payment_all,
         "course": course,
         "fee_term_one": fee_term_one,
@@ -210,7 +215,7 @@ def payment_pdf(request, *args, **kwargs):
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
 
     result = html.write_pdf(
-        stylesheets=[CSS((settings.STATIC_ROOT + "/payment/pdf.css"))],
+        stylesheets=[CSS((settings.STATIC_FILES + "/payment/pdf.css"))],
         presentational_hints=True,
     )
 

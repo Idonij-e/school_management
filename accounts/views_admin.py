@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
+import os
+from main.settings import MEDIA_ROOT
 
 from accounts.models import (
     StudentAssessment,
@@ -18,12 +20,11 @@ from accounts.models import (
     Payment,
 )
 from accounts.forms import AddStudentForm, EditStudentForm, FeeForm
-from accounts.utils import current_term, generate_school_id
+from accounts.utils import generate_school_id
 
 import docx
 import json
-from io import StringIO
-from copy import deepcopy
+from accounts.utils import upload_user_pic
 
 
 def home(request, **kwargs):
@@ -459,17 +460,13 @@ def add_student_save(request, user_school_id):
                     first_name=first_name,
                     last_name=last_name,
                     other_names=other_names,
-                    user_type=3,
                     phone_number=phone_number,
                     gender=gender,
+                    user_type=3,
                 )
 
-                if profile_pic != None or profile_pic != "":
-                    user.profile_pic = profile_pic
-
                 user.student.address = address
-                user.student.address = dob
-                user.student.phone_number = phone_number
+                user.student.dob = dob
 
                 user.student.class_level = class_level
 
@@ -477,7 +474,6 @@ def add_student_save(request, user_school_id):
                     current_term=True
                 )
                 user.student.current_session = current_session
-
                 if len(students_new_class) > 0:
                     current_session_assessments = StudentAssessment.objects.filter(
                         student=students_new_class[0], session=current_session
@@ -493,7 +489,22 @@ def add_student_save(request, user_school_id):
                             score=0,
                         ).save()
 
+                if profile_pic != None or profile_pic != "":
+                    user.profile_pic = profile_pic
+                    if os.listdir(MEDIA_ROOT):
+                        file_path = os.listdir(MEDIA_ROOT)[0]
+                        os.remove(os.path.join(MEDIA_ROOT, file_path))
+
                 user.save()
+
+                if user.profile_pic:
+                    profile_pic_url = upload_user_pic(
+                        user.school_id, user.profile_pic_url
+                    )
+                    user.profile_pic_url = profile_pic_url
+                    user.profile_pic = None
+                    user.save()
+
                 messages.success(request, "Student Added Successfully!")
 
             except Exception as E:
@@ -559,17 +570,6 @@ def edit_student_save(request, user_school_id):
             phone_number = form.cleaned_data["phone_number"]
             profile_pic = form.cleaned_data["profile_pic"]
 
-            # Getting Profile Pic first
-            # First Check whether the file is selected or not
-            # Upload only if file is selected
-            # if len(request.FILES) != 0:
-            #     profile_pic = request.FILES['profile_pic']
-            #     fs = FileSystemStorage()
-            #     filename = fs.save(profile_pic.name, profile_pic)
-            #     profile_pic_url = fs.url(filename)
-            # else:
-            #     profile_pic_url = None
-
             try:
                 # First Update into User Model
                 user = User.objects.get(school_id=student_school_id)
@@ -582,6 +582,9 @@ def edit_student_save(request, user_school_id):
 
                 if profile_pic != None or profile_pic != "":
                     user.profile_pic = profile_pic
+                    if os.listdir(MEDIA_ROOT):
+                        file_path = os.listdir(MEDIA_ROOT)[0]
+                        os.remove(os.path.join(MEDIA_ROOT, file_path))
 
                 # Then Update Students Table
                 student_model = user.student
@@ -623,6 +626,13 @@ def edit_student_save(request, user_school_id):
                 user.save()
 
                 student_model.save()
+                if user.profile_pic:
+                    profile_pic_url = upload_user_pic(
+                        user.school_id, user.profile_pic_url
+                    )
+                    user.profile_pic_url = profile_pic_url
+                    user.profile_pic = None
+                    user.save()
 
                 del request.session["student_school_id"]
 
