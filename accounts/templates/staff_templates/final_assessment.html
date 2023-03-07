@@ -138,6 +138,32 @@
 
                 </tbody>
               </table>
+              <div id="spinner_div" class="text-center">
+                <div class="spinner-grow text-primary" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <div class="spinner-grow text-secondary" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <div class="spinner-grow text-success" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <div class="spinner-grow text-danger" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <div class="spinner-grow text-warning" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <div class="spinner-grow text-info" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <div class="spinner-grow text-light" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <div class="spinner-grow text-dark" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+              </div>
             <div id="results"></div>
             <!-- errors go here -->
             
@@ -163,6 +189,7 @@
         </div>
       </div>
     </div>
+
   </div>
   <!-- /.container-fluid -->
 </section>
@@ -198,6 +225,8 @@
     $('#session').on('change', (e) => {
       let selected_session = e.target.value
       get_final_assessment(selected_session)
+      const table = $('table')[0]
+      table.style.display = 'none'
     })
 
     $('#term').on('change', (e) => {
@@ -205,11 +234,17 @@
     })
 
     function get_final_assessment(sessionId, currentSessionId=false, currentTermId=false) {
+      const spinner = document.getElementById('spinner_div')
+      spinner.style.display = 'block';
       $.get("{% url 'get_final_assessment' user_school_id %}", {sessionId, subjectId: {{ subject.id }} })
       .done((res) => {
+        const table = $('table')[0]
+        table.style.display = 'block' 
         finalAssessmentStore = res
         updateTerms(res.terms, currentSessionId, currentTermId)
         createStudentAssementEntries()
+        const spinner = document.getElementById('spinner_div')
+        spinner.style.display = 'none';
       })
       .fail((res) => {
         console.log("Failed bro")

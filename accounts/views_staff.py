@@ -621,9 +621,7 @@ def get_final_assessment(request, user_school_id):
                     ).values()
                 )
             data["students"].append(student_data)
-    import pprint
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(data)
+
     return JsonResponse(
         data,
         content_type="application/json",
