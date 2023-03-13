@@ -7,6 +7,8 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from accounts.login_middleware import is_logged_in
 
 
 from .models import (
@@ -21,6 +23,8 @@ from .models import (
 )
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def home(request, user_school_id):
 
     user = User.objects.get(school_id=user_school_id)
@@ -232,6 +236,8 @@ def home(request, user_school_id):
     return render(request, "staff_templates/home_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def profile(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     staff = user.staff
@@ -248,6 +254,8 @@ def profile(request, user_school_id):
     return render(request, "staff_templates/staff_profile.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_profile(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
@@ -310,6 +318,8 @@ def get_students(request):
     )
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def view_subjects(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     subjects = user.subject_set.all()
@@ -361,6 +371,8 @@ def view_subjects(request, user_school_id):
 #         return render(request, "staff_templates/select_assessment_term.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def staff_add_result(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     sessions = Session.objects.all()
@@ -383,6 +395,8 @@ def staff_add_result(request, user_school_id, subject_id):
     return render(request, "staff_templates/staff_add_result.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def get_students_assessment(request, user_school_id):
     subject_id = request.GET.get("subjectId")
     session_id = (
@@ -432,6 +446,8 @@ def get_students_assessment(request, user_school_id):
     )
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def save_student_result(request, user_school_id):
     if request.method != "POST":
         print("failed")
@@ -519,6 +535,8 @@ def save_student_result(request, user_school_id):
         )
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def final_assessment(request, user_school_id, subject_id):
     sessionId = request.GET.get("sessionId")
     subject = Subject.objects.get(id=subject_id)
@@ -562,6 +580,8 @@ def final_assessment(request, user_school_id, subject_id):
     return render(request, "staff_templates/final_assessment.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def get_final_assessment(request, user_school_id):
     subject_id = request.GET.get("subjectId")
     session_id = (

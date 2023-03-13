@@ -3,6 +3,8 @@ from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from accounts.login_middleware import is_logged_in
 
 from accounts.models import (
     User,
@@ -27,7 +29,8 @@ import tempfile
 # import asyncio
 # from pyppeteer import launch
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def home(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     student = user.student
@@ -61,7 +64,8 @@ def home(request, user_school_id):
 
     return render(request, "student_templates/home_template.html", context)
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def profile(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     student = user.student
@@ -89,7 +93,8 @@ def profile(request, user_school_id):
     }
     return render(request, "student_templates/student_profile.html", context)
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_profile(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
@@ -127,7 +132,8 @@ def edit_profile(request, user_school_id):
         finally:
             return redirect("/" + user_school_id + "/student_profile")
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def initiate_payment(request, user_school_id, fee_id):
     fee = Fee.objects.get(id=fee_id)
     user = User.objects.get(school_id=user_school_id)
@@ -160,7 +166,8 @@ def initiate_payment(request, user_school_id, fee_id):
     }
     return render(request, "student_templates/make_payment.html", context)
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
     payment = get_object_or_404(Payment, ref=ref)
     verified = payment.verify_payment()
@@ -174,7 +181,8 @@ def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
     user_school_id = request.session.get("user_school_id")
     return redirect("/" + user_school_id + "/payment_history")
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def payment_history(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     student = user.student
@@ -200,7 +208,8 @@ def payment_history(request, user_school_id):
     }
     return render(request, "student_templates/payment_history.html", context)
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def payment_pdf(request, *args, **kwargs):
     ref = kwargs.get("ref")
     payment = get_object_or_404(Payment, ref=ref)
@@ -231,7 +240,8 @@ def payment_pdf(request, *args, **kwargs):
     # template = get_template(template_path)
     # html = template.render(context)
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def student_view_result(request, user_school_id, session_id):
     user = User.objects.get(school_id=user_school_id)
     session = Session.objects.get(id=session_id)
@@ -251,11 +261,13 @@ def student_view_result(request, user_school_id, session_id):
     }
     return render(request, "student_templates/student_result.html", context)
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def payment_status(request, payment_ref):
     return HttpResponse("successfully, payment reference: " + payment_ref)
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def grade_card(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
     assessments = StudentAssessment.objects.filter(student=user.student)

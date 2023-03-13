@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
+from accounts.login_middleware import is_logged_in
 import os
 from main.settings import MEDIA_ROOT
 
@@ -26,9 +28,10 @@ import docx
 import json
 from accounts.utils import upload_user_pic
 
-
+@login_required(login_url="login_page")
+@is_logged_in
 def home(request, **kwargs):
-    user = User.objects.get(school_id=kwargs.get("user_school_id"))
+    user = User.objects.get(school_id=request.user.school_id)
 
     # data used in every view
     request.session["user_school_id"] = user.school_id
@@ -201,6 +204,8 @@ def home(request, **kwargs):
 # Administrator profile
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def profile(request, user_school_id):
     user = User.objects.get(school_id=user_school_id)
 
@@ -215,6 +220,8 @@ def profile(request, user_school_id):
     return render(request, "admin_templates/admin_profile.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_admin_profile(request, user_school_id):
 
     if request.method != "POST":
@@ -260,6 +267,8 @@ def edit_admin_profile(request, user_school_id):
 # STAFF
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_staff(request, user_school_id):
     staff_list = Staff.objects.all()
     context = {
@@ -273,6 +282,8 @@ def manage_staff(request, user_school_id):
     return render(request, "admin_templates/manage_staff_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_staff(request, user_school_id):
     gender_data = User.gender_data
     context = {
@@ -286,6 +297,8 @@ def add_staff(request, user_school_id):
     return render(request, "admin_templates/add_staff_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_staff_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method ")
@@ -324,6 +337,8 @@ def add_staff_save(request, user_school_id):
             return redirect("/" + user_school_id + "/add_staff")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_staff(request, user_school_id, staff_school_id):
 
     staff = User.objects.get(school_id=staff_school_id).staff
@@ -338,6 +353,8 @@ def edit_staff(request, user_school_id, staff_school_id):
     return render(request, "admin_templates/edit_staff_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_staff_save(request, user_school_id):
 
     if request.method != "POST":
@@ -372,6 +389,8 @@ def edit_staff_save(request, user_school_id):
             return redirect("/" + user_school_id + "/edit_staff/" + staff_school_id)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def delete_staff(request, user_school_id, staff_school_id):
     staff = User.objects.get(school_id=staff_school_id)
 
@@ -389,6 +408,8 @@ def delete_staff(request, user_school_id, staff_school_id):
 # STUDENTS
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_student(request, user_school_id):
 
     students = Student.objects.all()
@@ -402,6 +423,8 @@ def manage_student(request, user_school_id):
     return render(request, "admin_templates/manage_students_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_student(request, user_school_id):
     form = AddStudentForm()
 
@@ -415,6 +438,8 @@ def add_student(request, user_school_id):
     return render(request, "admin_templates/add_student_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_student_save(request, user_school_id):
 
     if request.method != "POST":
@@ -518,6 +543,8 @@ def add_student_save(request, user_school_id):
             return redirect("/" + user_school_id + "/add_student")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_student(request, user_school_id, student_school_id):
     # Adding Student ID into Session Variable
     request.session["student_school_id"] = student_school_id
@@ -546,6 +573,8 @@ def edit_student(request, user_school_id, student_school_id):
     return render(request, "admin_templates/edit_student_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_student_save(request, user_school_id):
     if request.method != "POST":
         return HttpResponse("Invalid Method!")
@@ -650,6 +679,8 @@ def edit_student_save(request, user_school_id):
             return redirect("/" + user_school_id + "/edit_student/" + student_school_id)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def delete_student(request, user_school_id, student_school_id):
     student = User.objects.get(school_id=student_school_id)
     try:
@@ -666,6 +697,8 @@ def delete_student(request, user_school_id, student_school_id):
 # CLASSES
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_class(request, user_school_id):
 
     class_levels = ClassLevel.objects.all()
@@ -679,6 +712,8 @@ def manage_class(request, user_school_id):
     return render(request, "admin_templates/manage_class_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_class(request, user_school_id):
 
     context = {
@@ -690,6 +725,8 @@ def add_class(request, user_school_id):
     return render(request, "admin_templates/add_class_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_class_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
@@ -709,6 +746,8 @@ def add_class_save(request, user_school_id):
             return redirect("/" + user_school_id + "/add_class")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_class(request, user_school_id, class_level_id):
     class_level = ClassLevel.objects.get(id=class_level_id)
     context = {
@@ -721,6 +760,8 @@ def edit_class(request, user_school_id, class_level_id):
     return render(request, "admin_templates/edit_class_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_class_save(request, user_school_id):
     if request.method != "POST":
         HttpResponse("Invalid Method")
@@ -743,6 +784,8 @@ def edit_class_save(request, user_school_id):
             return redirect("/" + user_school_id + "/edit_class/" + class_level_id)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_class_students(request, user_school_id, class_level_name):
     class_level = ClassLevel.objects.get(class_level_name=class_level_name)
     students = class_level.student_set.all()
@@ -758,6 +801,8 @@ def manage_class_students(request, user_school_id, class_level_name):
     return render(request, "admin_templates/manage_students_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_class_add_student(request, user_school_id, class_level_name):
     class_level = ClassLevel.objects.get(class_level_name=class_level_name)
     form = AddStudentForm()
@@ -778,6 +823,8 @@ def manage_class_add_student(request, user_school_id, class_level_name):
     return render(request, "admin_templates/add_student_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_class_subjects(request, user_school_id, class_level_name):
     class_level = ClassLevel.objects.get(class_level_name=class_level_name)
     subjects = class_level.subject_set.all()
@@ -793,6 +840,8 @@ def manage_class_subjects(request, user_school_id, class_level_name):
     return render(request, "admin_templates/manage_subjects_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_class_add_subject(request, user_school_id, class_level_name):
 
     class_levels = ClassLevel.objects.all()
@@ -809,6 +858,8 @@ def manage_class_add_subject(request, user_school_id, class_level_name):
     return render(request, "admin_templates/add_subject_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def delete_class(request, user_school_id, class_level_id):
     class_level = ClassLevel.objects.get(id=class_level_id)
     try:
@@ -825,6 +876,8 @@ def delete_class(request, user_school_id, class_level_id):
 # SUBJECTS
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_subject(request, user_school_id):
 
     subjects = Subject.objects.all()
@@ -838,6 +891,8 @@ def manage_subject(request, user_school_id):
     return render(request, "admin_templates/manage_subjects_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_subject(request, user_school_id):
 
     class_levels = ClassLevel.objects.all()
@@ -853,6 +908,8 @@ def add_subject(request, user_school_id):
     return render(request, "admin_templates/add_subject_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_subject_save(request, user_school_id):
 
     if request.method != "POST":
@@ -880,6 +937,8 @@ def add_subject_save(request, user_school_id):
             return redirect("/" + user_school_id + "/add_subject")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_subject(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     class_levels = ClassLevel.objects.all()
@@ -896,6 +955,8 @@ def edit_subject(request, user_school_id, subject_id):
     return render(request, "admin_templates/edit_subject_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_subject_save(request, user_school_id):
     if request.method != "POST":
         HttpResponse("Invalid Method.")
@@ -929,6 +990,8 @@ def edit_subject_save(request, user_school_id):
             return redirect("/" + user_school_id + "/edit_subject/" + subject_id)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def delete_subject(request, user_school_id, subject_id):
     subject = Subject.objects.get(id=subject_id)
     try:
@@ -945,6 +1008,8 @@ def delete_subject(request, user_school_id, subject_id):
 # SESSION
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_session(request, user_school_id):
 
     try:
@@ -972,6 +1037,8 @@ def manage_session(request, user_school_id):
         return render(request, "admin_templates/manage_session_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_session(request, user_school_id):
 
     context = {
@@ -983,6 +1050,8 @@ def add_session(request, user_school_id):
     return render(request, "admin_templates/add_session_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_session_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method")
@@ -1010,6 +1079,8 @@ def add_session_save(request, user_school_id):
             return redirect("/" + user_school_id + "/manage_session")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def select_session(request, user_school_id):
 
     sessions = Session.objects.all()
@@ -1029,6 +1100,8 @@ def select_session(request, user_school_id):
     return render(request, "admin_templates/current_session.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def select_session_save(request, user_school_id):
 
     if request.method != "POST":
@@ -1067,6 +1140,8 @@ def select_session_save(request, user_school_id):
             return redirect("/" + user_school_id + "/current_session")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_session(request, user_school_id, session_id):
     session = Session.objects.get(id=session_id)
     context = {
@@ -1079,6 +1154,8 @@ def edit_session(request, user_school_id, session_id):
     return render(request, "admin_templates/edit_session_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_session_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
@@ -1104,6 +1181,8 @@ def edit_session_save(request, user_school_id):
             return redirect("/" + user_school_id + "/manage_session")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def delete_session(request, user_school_id, session_id):
     session = Session.objects.get(id=session_id)
     try:
@@ -1118,6 +1197,8 @@ def delete_session(request, user_school_id, session_id):
 
 
 # FEES
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_fee(request, user_school_id):
     fee_list = Fee.objects.all()
     context = {
@@ -1130,6 +1211,8 @@ def manage_fee(request, user_school_id):
     return render(request, "admin_templates/manage_fee_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_fee(request, user_school_id):
     form = FeeForm()
     context = {
@@ -1143,6 +1226,8 @@ def add_fee(request, user_school_id):
     return render(request, "admin_templates/add_fee_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def add_fee_save(request, user_school_id):
     if request.method == "POST":
         form = FeeForm(request.POST)
@@ -1158,6 +1243,8 @@ def add_fee_save(request, user_school_id):
         return redirect("/" + user_school_id + "/add_fee")
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def edit_fee(request, user_school_id, fee_id):
     fee = Fee.objects.get(id=fee_id)
     form = FeeForm(request.POST or None, instance=fee)
@@ -1177,6 +1264,8 @@ def edit_fee(request, user_school_id, fee_id):
     return render(request, "admin_templates/edit_fee_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def delete_fee(request, user_school_id, fee_id):
     fee = Fee.objects.get(id=fee_id)
     try:
@@ -1191,6 +1280,8 @@ def delete_fee(request, user_school_id, fee_id):
 
 
 # OTHER VIEWS
+@login_required(login_url="login_page")
+@is_logged_in
 def view_fee_payments(request, user_school_id, student_school_id):
     student = User.objects.get(school_id=student_school_id)
     payment_all = Payment.objects.filter(student=student.student, verified=True)
@@ -1204,6 +1295,8 @@ def view_fee_payments(request, user_school_id, student_school_id):
     return render(request, "admin_templates/student_payment_history.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def student_records(request, user_school_id, course_id):
     course = ClassLevel.objects.get(class_level_name=course_id)
     students = course.student_set.all()
@@ -1218,6 +1311,8 @@ def student_records(request, user_school_id, course_id):
     return render(request, "admin_templates/student_list.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def student_records_doc(request, course_id):
     # pip install python-docx
     # import docx
@@ -1283,6 +1378,8 @@ def student_records_doc(request, course_id):
     # return response
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def change_class_level(request, user_school_id, class_level_name):
     if class_level_name == "completed":
         students = Student.objects.filter(student_status=2)
@@ -1334,6 +1431,8 @@ def change_class_level(request, user_school_id, class_level_name):
     return render(request, "admin_templates/manage_students_template.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_students_completed(request, user_school_id):
     students_completed = Student.objects.filter(class_level=None, student_status=2)
     context = {
@@ -1347,6 +1446,8 @@ def manage_students_completed(request, user_school_id):
     return render(request, "admin_templates/students_completed.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def manage_students_left(request, user_school_id):
     students_left = Student.objects.filter(class_level=None, student_status=3)
     context = {
@@ -1360,6 +1461,8 @@ def manage_students_left(request, user_school_id):
     return render(request, "admin_templates/students_left.html", context)
 
 
+@login_required(login_url="login_page")
+@is_logged_in
 def change_class_level_save(request, user_school_id):
 
     if request.method != "POST":

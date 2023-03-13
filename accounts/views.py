@@ -5,55 +5,61 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 
 from accounts.school_id_backend import SchoolIdBackend
+from accounts.login_middleware import is_logged_in
 
-
+@is_logged_in
 def login_page(request):
-    return render(request, 'login.html')
-
+    return render(request, "login.html")
 
 
 def do_login(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
-    user = SchoolIdBackend.authenticate(request, school_id=request.POST.get('school_id'), password=request.POST.get('password'))
+    user = SchoolIdBackend.authenticate(
+        request,
+        school_id=request.POST.get("school_id"),
+        password=request.POST.get("password"),
+    )
 
     if user != None:
-        login(request, user, backend='.school_id_backend.SchoolIdBackend')
+        login(request, user, backend="accounts.school_id_backend.SchoolIdBackend")
         user_type = user.user_type
 
         if user_type == 1:
+            # request.session["user_is_authenticated"] = True
+            request.session.set_expiry(600)
             return redirect("/" + user.school_id + "/admin_home")
-            
+
         elif user_type == 2:
-            return redirect("/" + user.school_id + '/staff_home')
-            
+            request.session.set_expiry(600)
+            return redirect("/" + user.school_id + "/staff_home")
+
         elif user_type == 3:
-            return redirect("/" + user.school_id + '/student_home')
+            request.session.set_expiry(600)
+            return redirect("/" + user.school_id + "/student_home")
 
         else:
             messages.error(request, "Invalid Login!")
-            return redirect('login')
+            return redirect("login")
 
     else:
         messages.error(request, "Invalid Login Credentials!")
-        return redirect('login_page')
-
+        return redirect("login_page")
 
 
 def get_user_details(request):
     if request.user != None:
-        return HttpResponse("User: "+request.user.email+" User Type: "+request.user.user_type)
+        return HttpResponse(
+            "User: " + request.user.email + " User Type: " + request.user.user_type
+        )
     else:
         return HttpResponse("Please Login First")
 
 
-
 def logout_user(request):
-    del request.session['user_school_id']
-    del request.session['user_first_name']
-    del request.session['user_last_name']
-    del request.session['user_other_names']
+    del request.session["user_school_id"]
+    del request.session["user_first_name"]
+    del request.session["user_last_name"]
+    del request.session["user_other_names"]
     logout(request)
-    return HttpResponseRedirect('/')
-
-
+    return HttpResponseRedirect("/")

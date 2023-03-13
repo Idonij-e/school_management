@@ -152,6 +152,9 @@ AUTHENTICATION_BACKENDS = [
     "accounts.school_id_backend.SchoolIdBackend",
 ]
 
+# Store session cache in db
+# SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
 PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY")
 FOLDER_ID = os.getenv("FOLDER_ID")
