@@ -32,15 +32,8 @@ import tempfile
 @login_required(login_url="login_page")
 @is_logged_in
 def home(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     student = user.student
-
-    # data used in every view
-    request.session["user_school_id"] = user.school_id
-    request.session["user_first_name"] = user.first_name
-    request.session["user_last_name"] = user.last_name
-    request.session["user_other_names"] = user.other_names
-    request.session["user_profile_pic_url"] = user.profile_pic_url
 
     subjects = student.class_level.subject_set.all()
     course = ClassLevel.objects.get(id=student.class_level.id)
@@ -50,11 +43,11 @@ def home(request, user_school_id):
     fee_others = Fee.objects.filter(course_id=course, term="Not Term-related")
 
     context = {
-        "user_school_id": request.session.get("user_school_id"),
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_profile_pic_url": request.session.get("user_profile_pic_url"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_profile_pic_url": request.user.profile_pic_url,
         "subjects": subjects,
         "fee_term_one": fee_term_one,
         "fee_term_two": fee_term_two,
@@ -67,7 +60,7 @@ def home(request, user_school_id):
 @login_required(login_url="login_page")
 @is_logged_in
 def profile(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     student = user.student
 
     subjects = student.class_level.subject_set.all()
@@ -79,11 +72,11 @@ def profile(request, user_school_id):
 
     context = {
         "user": user,
-        "user_school_id": request.session.get("user_school_id"),
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_profile_pic_url": request.session.get("user_profilic_pic_url"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_profile_pic_url": request.user.profilic_pic_url,
         "student": student,
         "gender_data": user.gender_data,
         "fee_term_one": fee_term_one,
@@ -98,7 +91,7 @@ def profile(request, user_school_id):
 def edit_profile(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
-        return redirect("/" + user_school_id + "/student_profile")
+        return redirect("/" + request.user.school_id + "/student_profile")
 
     else:
         first_name = request.POST.get("first_name")
@@ -111,7 +104,7 @@ def edit_profile(request, user_school_id):
         address = request.POST.get("address")
 
         try:
-            user = User.objects.get(school_id=user_school_id)
+            user = User.objects.get(school_id=request.user.school_id)
             user.first_name = first_name
             user.last_name = last_name
             user.other_names = other_names
@@ -130,13 +123,13 @@ def edit_profile(request, user_school_id):
             messages.error(request, "Failed to Update Profile")
 
         finally:
-            return redirect("/" + user_school_id + "/student_profile")
+            return redirect("/" + request.user.school_id + "/student_profile")
 
 @login_required(login_url="login_page")
 @is_logged_in
 def initiate_payment(request, user_school_id, fee_id):
     fee = Fee.objects.get(id=fee_id)
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     payment_model = Payment(fee_id=fee, student=user.student)
     current_session = Session.objects.get(current_session=True)
     payment_model.session = str(current_session).split(" ")[0]
@@ -151,11 +144,11 @@ def initiate_payment(request, user_school_id, fee_id):
     fee_others = Fee.objects.filter(course_id=course, term="Not Term-related")
 
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
-        "user_profile_pic_url": request.session.get("user_profilic_pic_url"),
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
+        "user_profile_pic_url": request.user.profilic_pic_url,
         "fee": fee,
         "payment": payment_model,
         "paystack_public_key": settings.PAYSTACK_PUBLIC_KEY,
@@ -178,13 +171,13 @@ def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
         all_payments = Payment.objects.filter(verified=False)
         all_payments.delete()
 
-    user_school_id = request.session.get("user_school_id")
-    return redirect("/" + user_school_id + "/payment_history")
+    user_school_id = request.user.school_id
+    return redirect("/" + request.user.school_id + "/payment_history")
 
 @login_required(login_url="login_page")
 @is_logged_in
 def payment_history(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     student = user.student
     course = ClassLevel.objects.get(id=student.class_level.id)
     payment_all = Payment.objects.filter(student=student, verified=True)
@@ -194,11 +187,11 @@ def payment_history(request, user_school_id):
     fee_others = Fee.objects.filter(course_id=course, term="Not Term-related")
 
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
-        "user_profile_pic_url": request.session.get("user_profilic_pic_url"),
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
+        "user_profile_pic_url": request.user.profilic_pic_url,
         "payment_all": payment_all,
         "course": course,
         "fee_term_one": fee_term_one,
@@ -243,7 +236,7 @@ def payment_pdf(request, *args, **kwargs):
 @login_required(login_url="login_page")
 @is_logged_in
 def student_view_result(request, user_school_id, session_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     session = Session.objects.get(id=session_id)
     terms = session.term_set.all()
     assessments = StudentAssessment.objects.filter(
@@ -254,7 +247,7 @@ def student_view_result(request, user_school_id, session_id):
     ).distinct()
     context = {
         "user": user,
-        "user_school_id": user_school_id,
+        "user_school_id": request.user.school_id,
         "terms": terms,
         "subjects": subjects,
         "assessments": assessments,
@@ -269,7 +262,7 @@ def payment_status(request, payment_ref):
 @login_required(login_url="login_page")
 @is_logged_in
 def grade_card(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     assessments = StudentAssessment.objects.filter(student=user.student)
     temp_session_list = []
 

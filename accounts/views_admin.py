@@ -33,12 +33,6 @@ from accounts.utils import upload_user_pic
 def home(request, **kwargs):
     user = User.objects.get(school_id=request.user.school_id)
 
-    # data used in every view
-    request.session["user_school_id"] = user.school_id
-    request.session["user_first_name"] = user.first_name
-    request.session["user_last_name"] = user.last_name
-    request.session["user_other_names"] = user.other_names
-
     all_student_count = Student.objects.all().count()
     subject_count = Subject.objects.all().count()
     class_level_count = ClassLevel.objects.all().count()
@@ -179,10 +173,10 @@ def home(request, **kwargs):
     color_set = chart_bg_color[0 : int(class_level_count)]
 
     context = {
-        "user_school_id": request.session.get("user_school_id"),
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
         "all_student_count": all_student_count,
         "subject_count": subject_count,
         "class_level_count": class_level_count,
@@ -207,14 +201,14 @@ def home(request, **kwargs):
 @login_required(login_url="login_page")
 @is_logged_in
 def profile(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
 
     context = {
         "user": user,
-        "user_school_id": request.session.get("user_school_id"),
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
         "gender_data": User.gender_data,
     }
     return render(request, "admin_templates/admin_profile.html", context)
@@ -226,7 +220,7 @@ def edit_admin_profile(request, user_school_id):
 
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
-        return redirect("/" + user_school_id + "profile")
+        return redirect("/" + request.user.school_id + "profile")
 
     else:
         first_name = request.POST.get("first_name")
@@ -261,7 +255,7 @@ def edit_admin_profile(request, user_school_id):
             messages.error(request, "Failed to Update Profile")
 
         finally:
-            return redirect("/" + user_school_id + "/profile")
+            return redirect("/" + request.user.school_id + "/profile")
 
 
 # STAFF
@@ -272,10 +266,10 @@ def edit_admin_profile(request, user_school_id):
 def manage_staff(request, user_school_id):
     staff_list = Staff.objects.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "staff_list": staff_list,
     }
 
@@ -287,10 +281,10 @@ def manage_staff(request, user_school_id):
 def add_staff(request, user_school_id):
     gender_data = User.gender_data
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "gender_data": gender_data,
     }
 
@@ -302,7 +296,7 @@ def add_staff(request, user_school_id):
 def add_staff_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method ")
-        return redirect("/" + user_school_id + "/add_staff")
+        return redirect("/" + request.user.school_id + "/add_staff")
 
     else:
         first_name = request.POST.get("first_name")
@@ -334,7 +328,7 @@ def add_staff_save(request, user_school_id):
             messages.error(request, "Failed to Add Staff!")
 
         finally:
-            return redirect("/" + user_school_id + "/add_staff")
+            return redirect("/" + request.user.school_id + "/add_staff")
 
 
 @login_required(login_url="login_page")
@@ -343,10 +337,10 @@ def edit_staff(request, user_school_id, staff_school_id):
 
     staff = User.objects.get(school_id=staff_school_id).staff
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "staff": staff,
         "gender_data": User.gender_data,
     }
@@ -386,7 +380,7 @@ def edit_staff_save(request, user_school_id):
             messages.error(request, "Failed to Update Staff.")
 
         finally:
-            return redirect("/" + user_school_id + "/edit_staff/" + staff_school_id)
+            return redirect("/" + request.user.school_id + "/edit_staff/" + staff_school_id)
 
 
 @login_required(login_url="login_page")
@@ -402,7 +396,7 @@ def delete_staff(request, user_school_id, staff_school_id):
         messages.error(request, "Failed to Delete Staff.")
 
     finally:
-        return redirect("/" + user_school_id + "/manage_staff")
+        return redirect("/" + request.user.school_id + "/manage_staff")
 
 
 # STUDENTS
@@ -414,10 +408,10 @@ def manage_student(request, user_school_id):
 
     students = Student.objects.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "students": students,
     }
     return render(request, "admin_templates/manage_students_template.html", context)
@@ -429,10 +423,10 @@ def add_student(request, user_school_id):
     form = AddStudentForm()
 
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "form": form,
     }
     return render(request, "admin_templates/add_student_template.html", context)
@@ -444,7 +438,7 @@ def add_student_save(request, user_school_id):
 
     if request.method != "POST":
         messages.error(request, "Invalid Method")
-        return redirect("/" + user_school_id + "/add_student")
+        return redirect("/" + request.user.school_id + "/add_student")
 
     else:
         form = AddStudentForm(request.POST, request.FILES)
@@ -453,7 +447,7 @@ def add_student_save(request, user_school_id):
             class_level_id = request.POST["class_level_id"]
         except KeyError:
             messages.error(request, "Select a Class To Add Student!")
-            return redirect("/" + user_school_id + "/add_student")
+            return redirect("/" + request.user.school_id + "/add_student")
 
         if form.is_valid():
             first_name = form.cleaned_data["first_name"]
@@ -537,10 +531,10 @@ def add_student_save(request, user_school_id):
                 messages.error(request, "Failed to Add Student!")
 
             finally:
-                return redirect("/" + user_school_id + "/add_student")
+                return redirect("/" + request.user.school_id + "/add_student")
 
         else:
-            return redirect("/" + user_school_id + "/add_student")
+            return redirect("/" + request.user.school_id + "/add_student")
 
 
 @login_required(login_url="login_page")
@@ -563,10 +557,10 @@ def edit_student(request, user_school_id, student_school_id):
     form.fields["phone_number"].initial = student_user.phone_number
 
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "student": student_user,
         "form": form,
     }
@@ -584,7 +578,7 @@ def edit_student_save(request, user_school_id):
         current_session = Session.objects.get(current_session=True)
 
         if student_school_id == None:
-            return redirect("/" + user_school_id + "/manage_student")
+            return redirect("/" + request.user.school_id + "/manage_student")
 
         form = EditStudentForm(request.POST, request.FILES)
         if form.is_valid():
@@ -672,11 +666,11 @@ def edit_student_save(request, user_school_id):
 
             finally:
                 return redirect(
-                    "/" + user_school_id + "/edit_student/" + student_school_id
+                    "/" + request.user.school_id + "/edit_student/" + student_school_id
                 )
 
         else:
-            return redirect("/" + user_school_id + "/edit_student/" + student_school_id)
+            return redirect("/" + request.user.school_id + "/edit_student/" + student_school_id)
 
 
 @login_required(login_url="login_page")
@@ -691,7 +685,7 @@ def delete_student(request, user_school_id, student_school_id):
         messages.error(request, "Failed to Delete Student.")
 
     finally:
-        return redirect("/" + user_school_id + "/manage_student")
+        return redirect("/" + request.user.school_id + "/manage_student")
 
 
 # CLASSES
@@ -703,10 +697,10 @@ def manage_class(request, user_school_id):
 
     class_levels = ClassLevel.objects.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "class_levels": class_levels,
     }
     return render(request, "admin_templates/manage_class_template.html", context)
@@ -717,10 +711,10 @@ def manage_class(request, user_school_id):
 def add_class(request, user_school_id):
 
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
     }
     return render(request, "admin_templates/add_class_template.html", context)
 
@@ -730,7 +724,7 @@ def add_class(request, user_school_id):
 def add_class_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
-        return redirect("/" + user_school_id + "/add_class")
+        return redirect("/" + request.user.school_id + "/add_class")
 
     else:
         class_level_name = request.POST.get("class_level_name")
@@ -743,7 +737,7 @@ def add_class_save(request, user_school_id):
             messages.error(request, "Failed to Add Class!")
 
         finally:
-            return redirect("/" + user_school_id + "/add_class")
+            return redirect("/" + request.user.school_id + "/add_class")
 
 
 @login_required(login_url="login_page")
@@ -751,10 +745,10 @@ def add_class_save(request, user_school_id):
 def edit_class(request, user_school_id, class_level_id):
     class_level = ClassLevel.objects.get(id=class_level_id)
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "class_level": class_level,
     }
     return render(request, "admin_templates/edit_class_template.html", context)
@@ -781,7 +775,7 @@ def edit_class_save(request, user_school_id):
             messages.error(request, "Failed to Update Class.")
 
         finally:
-            return redirect("/" + user_school_id + "/edit_class/" + class_level_id)
+            return redirect("/" + request.user.school_id + "/edit_class/" + class_level_id)
 
 
 @login_required(login_url="login_page")
@@ -790,10 +784,10 @@ def manage_class_students(request, user_school_id, class_level_name):
     class_level = ClassLevel.objects.get(class_level_name=class_level_name)
     students = class_level.student_set.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "class_level": class_level,
         "students": students,
     }
@@ -813,10 +807,10 @@ def manage_class_add_student(request, user_school_id, class_level_name):
     # form.fields["class_level_id"].disabled = True
 
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "form": form,
         "class_level": class_level,
     }
@@ -829,10 +823,10 @@ def manage_class_subjects(request, user_school_id, class_level_name):
     class_level = ClassLevel.objects.get(class_level_name=class_level_name)
     subjects = class_level.subject_set.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "class_level": class_level,
         "subjects": subjects,
     }
@@ -847,10 +841,10 @@ def manage_class_add_subject(request, user_school_id, class_level_name):
     class_levels = ClassLevel.objects.all()
     staff_list = User.objects.filter(user_type="2")
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "class_levels": class_levels,
         "class_level_name": class_level_name,
         "staff_list": staff_list,
@@ -870,7 +864,7 @@ def delete_class(request, user_school_id, class_level_id):
         messages.error(request, "Failed to Delete class.")
 
     finally:
-        return redirect("/" + user_school_id + "/manage_class")
+        return redirect("/" + request.user.school_id + "/manage_class")
 
 
 # SUBJECTS
@@ -882,10 +876,10 @@ def manage_subject(request, user_school_id):
 
     subjects = Subject.objects.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "subjects": subjects,
     }
     return render(request, "admin_templates/manage_subjects_template.html", context)
@@ -898,10 +892,10 @@ def add_subject(request, user_school_id):
     class_levels = ClassLevel.objects.all()
     staff_list = User.objects.filter(user_type="2")
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "class_levels": class_levels,
         "staff_list": staff_list,
     }
@@ -914,7 +908,7 @@ def add_subject_save(request, user_school_id):
 
     if request.method != "POST":
         messages.error(request, "Method Not Allowed!")
-        return redirect("/" + user_school_id + "/add_subject")
+        return redirect("/" + request.user.school_id + "/add_subject")
     else:
         subject_name = request.POST.get("subject")
         class_level_id = request.POST.get("class")
@@ -934,7 +928,7 @@ def add_subject_save(request, user_school_id):
             messages.error(request, "Failed to Add Subject!")
 
         finally:
-            return redirect("/" + user_school_id + "/add_subject")
+            return redirect("/" + request.user.school_id + "/add_subject")
 
 
 @login_required(login_url="login_page")
@@ -944,10 +938,10 @@ def edit_subject(request, user_school_id, subject_id):
     class_levels = ClassLevel.objects.all()
     staff_list = User.objects.filter(user_type="2")
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "subject": subject,
         "class_levels": class_levels,
         "staff_list": staff_list,
@@ -987,7 +981,7 @@ def edit_subject_save(request, user_school_id):
             # return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id":subject_id}))
 
         finally:
-            return redirect("/" + user_school_id + "/edit_subject/" + subject_id)
+            return redirect("/" + request.user.school_id + "/edit_subject/" + subject_id)
 
 
 @login_required(login_url="login_page")
@@ -1002,7 +996,7 @@ def delete_subject(request, user_school_id, subject_id):
         messages.error(request, "Failed to Delete Subject.")
 
     finally:
-        return redirect("/" + user_school_id + "/manage_subject")
+        return redirect("/" + request.user.school_id + "/manage_subject")
 
 
 # SESSION
@@ -1016,10 +1010,10 @@ def manage_session(request, user_school_id):
         sessions = Session.objects.all()
         current_term = Term.objects.get(current_term=True)
         context = {
-            "user_first_name": request.session.get("user_first_name"),
-            "user_last_name": request.session.get("user_last_name"),
-            "user_other_names": request.session.get("user_other_names"),
-            "user_school_id": user_school_id,
+            "user_first_name": request.user.first_name,
+            "user_last_name": request.user.last_name,
+            "user_other_names": request.user.other_names,
+            "user_school_id": request.user.school_id,
             "sessions": sessions,
             "current_term": current_term,
         }
@@ -1028,10 +1022,10 @@ def manage_session(request, user_school_id):
     except Term.DoesNotExist:
         sessions = Session.objects.all()
         context = {
-            "user_first_name": request.session.get("user_first_name"),
-            "user_last_name": request.session.get("user_last_name"),
-            "user_other_names": request.session.get("user_other_names"),
-            "user_school_id": user_school_id,
+            "user_first_name": request.user.first_name,
+            "user_last_name": request.user.last_name,
+            "user_other_names": request.user.other_names,
+            "user_school_id": request.user.school_id,
             "sessions": sessions,
         }
         return render(request, "admin_templates/manage_session_template.html", context)
@@ -1042,10 +1036,10 @@ def manage_session(request, user_school_id):
 def add_session(request, user_school_id):
 
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
     }
     return render(request, "admin_templates/add_session_template.html", context)
 
@@ -1055,7 +1049,7 @@ def add_session(request, user_school_id):
 def add_session_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method")
-        return redirect("/" + user_school_id + "/manage_session")
+        return redirect("/" + request.user.school_id + "/manage_session")
 
     else:
         session_start = request.POST.get("session_start")
@@ -1076,7 +1070,7 @@ def add_session_save(request, user_school_id):
             messages.error(request, "Failed to Add Session")
 
         finally:
-            return redirect("/" + user_school_id + "/manage_session")
+            return redirect("/" + request.user.school_id + "/manage_session")
 
 
 @login_required(login_url="login_page")
@@ -1090,10 +1084,10 @@ def select_session(request, user_school_id):
     #    current_session = None
     context = {
         #'current_session': current_session,
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "sessions": sessions,
         "terms": Term.term_data,
     }
@@ -1106,7 +1100,7 @@ def select_session_save(request, user_school_id):
 
     if request.method != "POST":
         messages.error(request, "Method Not Allowed!")
-        return redirect("/" + user_school_id + "/current_session")
+        return redirect("/" + request.user.school_id + "/current_session")
     else:
         session_id = request.POST.get("session")
         term_value = request.POST.get("term")
@@ -1137,7 +1131,7 @@ def select_session_save(request, user_school_id):
             messages.error(request, "Failed to Create Current Session!")
 
         finally:
-            return redirect("/" + user_school_id + "/current_session")
+            return redirect("/" + request.user.school_id + "/current_session")
 
 
 @login_required(login_url="login_page")
@@ -1145,10 +1139,10 @@ def select_session_save(request, user_school_id):
 def edit_session(request, user_school_id, session_id):
     session = Session.objects.get(id=session_id)
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "session": session,
     }
     return render(request, "admin_templates/edit_session_template.html", context)
@@ -1159,7 +1153,7 @@ def edit_session(request, user_school_id, session_id):
 def edit_session_save(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
-        return redirect("/" + user_school_id + "/manage_session")
+        return redirect("/" + request.user.school_id + "/manage_session")
 
     else:
         session_id = request.POST.get("session_id")
@@ -1178,7 +1172,7 @@ def edit_session_save(request, user_school_id):
             messages.error(request, "Failed to Update Session.")
 
         finally:
-            return redirect("/" + user_school_id + "/manage_session")
+            return redirect("/" + request.user.school_id + "/manage_session")
 
 
 @login_required(login_url="login_page")
@@ -1193,7 +1187,7 @@ def delete_session(request, user_school_id, session_id):
         messages.error(request, "Failed to Delete Session.")
 
     finally:
-        return redirect("/" + user_school_id + "/manage_session")
+        return redirect("/" + request.user.school_id + "/manage_session")
 
 
 # FEES
@@ -1202,10 +1196,10 @@ def delete_session(request, user_school_id, session_id):
 def manage_fee(request, user_school_id):
     fee_list = Fee.objects.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "fee_list": fee_list,
     }
     return render(request, "admin_templates/manage_fee_template.html", context)
@@ -1216,10 +1210,10 @@ def manage_fee(request, user_school_id):
 def add_fee(request, user_school_id):
     form = FeeForm()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "form": form,
     }
 
@@ -1234,13 +1228,13 @@ def add_fee_save(request, user_school_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Successfully Added Fee")
-            return redirect("/" + user_school_id + "/add_fee")
+            return redirect("/" + request.user.school_id + "/add_fee")
         else:
             form = FeeForm(request.POST)
-            return redirect("/" + user_school_id + "/add_fee")
+            return redirect("/" + request.user.school_id + "/add_fee")
     else:
         messages.error(request, "Invalid Method")
-        return redirect("/" + user_school_id + "/add_fee")
+        return redirect("/" + request.user.school_id + "/add_fee")
 
 
 @login_required(login_url="login_page")
@@ -1249,10 +1243,10 @@ def edit_fee(request, user_school_id, fee_id):
     fee = Fee.objects.get(id=fee_id)
     form = FeeForm(request.POST or None, instance=fee)
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "fee": fee,
         "form": form,
     }
@@ -1260,7 +1254,7 @@ def edit_fee(request, user_school_id, fee_id):
         form.save()
         messages.success(request, "Successfully Edited Fee")
         # return redirect(reverse("manage_fee"))
-        return redirect("/" + user_school_id + "/manage_fee")
+        return redirect("/" + request.user.school_id + "/manage_fee")
     return render(request, "admin_templates/edit_fee_template.html", context)
 
 
@@ -1276,7 +1270,7 @@ def delete_fee(request, user_school_id, fee_id):
         messages.error(request, "Failed to Delete Fee.")
 
     finally:
-        return redirect("/" + user_school_id + "/manage_fee")
+        return redirect("/" + request.user.school_id + "/manage_fee")
 
 
 # OTHER VIEWS
@@ -1286,10 +1280,10 @@ def view_fee_payments(request, user_school_id, student_school_id):
     student = User.objects.get(school_id=student_school_id)
     payment_all = Payment.objects.filter(student=student.student, verified=True)
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "payment_all": payment_all,
     }
     return render(request, "admin_templates/student_payment_history.html", context)
@@ -1301,10 +1295,10 @@ def student_records(request, user_school_id, course_id):
     course = ClassLevel.objects.get(class_level_name=course_id)
     students = course.student_set.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "course": course,
         "students": students,
     }
@@ -1386,10 +1380,10 @@ def change_class_level(request, user_school_id, class_level_name):
         class_levels = ClassLevel.objects.all()
 
         context = {
-            "user_first_name": request.session.get("user_first_name"),
-            "user_last_name": request.session.get("user_last_name"),
-            "user_other_names": request.session.get("user_other_names"),
-            "user_school_id": user_school_id,
+            "user_first_name": request.user.first_name,
+            "user_last_name": request.user.last_name,
+            "user_other_names": request.user.other_names,
+            "user_school_id": request.user.school_id,
             "class_levels": class_levels,
             "students": students,
             "change_class_level": True,
@@ -1402,10 +1396,10 @@ def change_class_level(request, user_school_id, class_level_name):
         class_levels = ClassLevel.objects.all()
 
         context = {
-            "user_first_name": request.session.get("user_first_name"),
-            "user_last_name": request.session.get("user_last_name"),
-            "user_other_names": request.session.get("user_other_names"),
-            "user_school_id": user_school_id,
+            "user_first_name": request.user.first_name,
+            "user_last_name": request.user.last_name,
+            "user_other_names": request.user.other_names,
+            "user_school_id": request.user.school_id,
             "class_levels": class_levels,
             "students": students,
             "change_class_level": True,
@@ -1418,10 +1412,10 @@ def change_class_level(request, user_school_id, class_level_name):
     class_levels = ClassLevel.objects.all()
     students = class_level.student_set.all()
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "class_level": class_level,
         "class_levels": class_levels,
         "students": students,
@@ -1436,10 +1430,10 @@ def change_class_level(request, user_school_id, class_level_name):
 def manage_students_completed(request, user_school_id):
     students_completed = Student.objects.filter(class_level=None, student_status=2)
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "students": students_completed,
     }
 
@@ -1451,10 +1445,10 @@ def manage_students_completed(request, user_school_id):
 def manage_students_left(request, user_school_id):
     students_left = Student.objects.filter(class_level=None, student_status=3)
     context = {
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
-        "user_school_id": user_school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
+        "user_school_id": request.user.school_id,
         "students": students_left,
     }
 
@@ -1467,7 +1461,7 @@ def change_class_level_save(request, user_school_id):
 
     if request.method != "POST":
         print("failed")
-        return redirect("/" + user_school_id + "/manage_class")
+        return redirect("/" + request.user.school_id + "/manage_class")
 
     data = json.loads(request.POST["data"])
 
@@ -1492,7 +1486,7 @@ def change_class_level_save(request, user_school_id):
                 json.dumps(
                     {
                         "redirectUrl": "/"
-                        + user_school_id
+                        + request.user.school_id
                         + "/completed"
                         + "/manage_students"
                     }
@@ -1514,7 +1508,7 @@ def change_class_level_save(request, user_school_id):
                 json.dumps(
                     {
                         "/"
-                        + user_school_id
+                        + request.user.school_id
                         + "/manage_class/"
                         + old_class.class_level_name
                         + "/manage_students"
@@ -1546,7 +1540,7 @@ def change_class_level_save(request, user_school_id):
             messages.success(request, "Student(s) moved successfully")
             return JsonResponse(
                 json.dumps(
-                    {"redirectUrl": "/" + user_school_id + "/left" + "/manage_students"}
+                    {"redirectUrl": "/" + request.user.school_id + "/left" + "/manage_students"}
                 ),
                 content_type="application/json",
                 safe=False,
@@ -1560,7 +1554,7 @@ def change_class_level_save(request, user_school_id):
                 json.dumps(
                     {
                         "/"
-                        + user_school_id
+                        + request.user.school_id
                         + "/manage_class/"
                         + old_class.class_level_name
                         + "/manage_students"
@@ -1656,7 +1650,7 @@ def change_class_level_save(request, user_school_id):
                 json.dumps(
                     {
                         "redirectUrl": "/"
-                        + user_school_id
+                        + request.user.school_id
                         + "/manage_class/"
                         + old_class.class_level_name
                         + "/manage_students"
@@ -1676,7 +1670,7 @@ def change_class_level_save(request, user_school_id):
                 json.dumps(
                     {
                         "redirectUrl": "/"
-                        + user_school_id
+                        + request.user.school_id
                         + "/completed"
                         + "/manage_students"
                     }
@@ -1687,7 +1681,7 @@ def change_class_level_save(request, user_school_id):
 
         return JsonResponse(
             json.dumps(
-                {"redirectUrl": "/" + user_school_id + "/left" + "/manage_students"}
+                {"redirectUrl": "/" + request.user.school_id + "/left" + "/manage_students"}
             ),
             content_type="application/json",
             safe=False,
@@ -1702,7 +1696,7 @@ def change_class_level_save(request, user_school_id):
 #    'user_first_name': request.session.get('user_first_name'),
 #    'user_last_name': request.session.get('user_last_name'),
 #    'user_other_names': request.session.get('user_other_names'),
-#    "user_school_id": user_school_id,
+#    "user_school_id": request.user.school_id,
 #    'searched':searched,
 #    'class_search':class_search
 # }
@@ -1718,7 +1712,7 @@ def change_class_level_save(request, user_school_id):
 #       'user_first_name': request.session.get('user_first_name'),
 #       'user_last_name': request.session.get('user_last_name'),
 #       'user_other_names': request.session.get('user_other_names'),
-#       "user_school_id": user_school_id,
+#       "user_school_id": request.user.school_id,
 #       'searched':searched,
 #       'subject_search':subject_search
 #   }
@@ -1734,7 +1728,7 @@ def change_class_level_save(request, user_school_id):
 #        'user_first_name': request.session.get('user_first_name'),
 #        'user_last_name': request.session.get('user_last_name'),
 #        'user_other_names': request.session.get('user_other_names'),
-#        "user_school_id": user_school_id,
+#        "user_school_id": request.user.school_id,
 #        'searched':searched,
 #        'staff_search':staff_search
 #    }
@@ -1750,7 +1744,7 @@ def change_class_level_save(request, user_school_id):
 #        'user_first_name': request.session.get('user_first_name'),
 #        'user_last_name': request.session.get('user_last_name'),
 #        'user_other_names': request.session.get('user_other_names'),
-#        "user_school_id": user_school_id,
+#        "user_school_id": request.user.school_id,
 #        'searched':searched,
 #        'student_search':student_search
 #    }

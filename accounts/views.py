@@ -7,6 +7,7 @@ from django.contrib import messages
 from accounts.school_id_backend import SchoolIdBackend
 from accounts.login_middleware import is_logged_in
 
+
 @is_logged_in
 def login_page(request):
     return render(request, "login.html")
@@ -56,9 +57,5 @@ def get_user_details(request):
 
 
 def logout_user(request):
-    del request.session["user_school_id"]
-    del request.session["user_first_name"]
-    del request.session["user_last_name"]
-    del request.session["user_other_names"]
     logout(request)
     return HttpResponseRedirect("/")

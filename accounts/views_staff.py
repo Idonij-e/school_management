@@ -27,13 +27,7 @@ from .models import (
 @is_logged_in
 def home(request, user_school_id):
 
-    user = User.objects.get(school_id=user_school_id)
-    # data used in every view
-    request.session["user_school_id"] = user.school_id
-    request.session["user_first_name"] = user.first_name
-    request.session["user_last_name"] = user.last_name
-    request.session["user_other_names"] = user.other_names
-    # request.session['user_profile_pic'] = user.profile_pic
+    user = User.objects.get(school_id=request.user.school_id)
 
     # Fetching All Students under Staff
 
@@ -217,10 +211,10 @@ def home(request, user_school_id):
 
     context = {
         "user": user,
-        "user_school_id": request.session.get("user_school_id"),
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
         "students_count": students_count,
         "subject_count": subject_count,
         "assessment_count": assessment_count,
@@ -239,15 +233,15 @@ def home(request, user_school_id):
 @login_required(login_url="login_page")
 @is_logged_in
 def profile(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     staff = user.staff
 
     context = {
         "user": user,
-        "user_school_id": request.session.get("user_school_id"),
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
         "staff": staff,
         "gender_data": user.gender_data,
     }
@@ -259,7 +253,7 @@ def profile(request, user_school_id):
 def edit_profile(request, user_school_id):
     if request.method != "POST":
         messages.error(request, "Invalid Method!")
-        return redirect("/" + user_school_id + "/staff_profile")
+        return redirect("/" + request.user.school_id + "/staff_profile")
 
     else:
         first_name = request.POST.get("first_name")
@@ -272,7 +266,7 @@ def edit_profile(request, user_school_id):
         profile_pic = request.FILES.get("profile_pic")
 
         try:
-            user = User.objects.get(school_id=user_school_id)
+            user = User.objects.get(school_id=request.user.school_id)
             user.first_name = first_name
             user.last_name = last_name
             user.other_names = other_names
@@ -294,7 +288,7 @@ def edit_profile(request, user_school_id):
             messages.error(request, "Failed to Update Profile")
 
         finally:
-            return redirect("/" + user_school_id + "/staff_profile")
+            return redirect("/" + request.user.school_id + "/staff_profile")
 
 
 @csrf_exempt
@@ -321,14 +315,14 @@ def get_students(request):
 @login_required(login_url="login_page")
 @is_logged_in
 def view_subjects(request, user_school_id):
-    user = User.objects.get(school_id=user_school_id)
+    user = User.objects.get(school_id=request.user.school_id)
     subjects = user.subject_set.all()
 
     context = {
-        "user_school_id": request.session.get("user_school_id"),
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
         # 'user_profile_pic': request.session.get('user_profile_pic'),
         "user": user,
         "subjects": subjects,
@@ -344,10 +338,10 @@ def view_subjects(request, user_school_id):
 #     if assessment_action == "staff_add_result":
 #         staff_add_result = True
 #         context = {
-#         "user_school_id": user_school_id,
-#         "user_first_name": request.session.get("user_first_name"),
-#         "user_last_name": request.session.get("user_last_name"),
-#         "user_other_names": request.session.get("user_other_names"),
+#         "user_school_id": request.user.school_id,
+#         "user_first_name": request.user.first_name,
+#         "user_last_name": request.user.last_name,
+#         "user_other_names": request.user.other_names,
 #         "subject": subject,
 #         "terms": terms,
 #         "sessions": sessions,
@@ -359,10 +353,10 @@ def view_subjects(request, user_school_id):
 #     if assessment_action == "staff_final_assessment":
 #         staff_add_result = False
 #         context = {
-#         "user_school_id": user_school_id,
-#         "user_first_name": request.session.get("user_first_name"),
-#         "user_last_name": request.session.get("user_last_name"),
-#         "user_other_names": request.session.get("user_other_names"),
+#         "user_school_id": request.user.school_id,
+#         "user_first_name": request.user.first_name,
+#         "user_last_name": request.user.last_name,
+#         "user_other_names": request.user.other_names,
 #         "subject": subject,
 #         "terms": terms,
 #         "sessions": sessions,
@@ -380,10 +374,10 @@ def staff_add_result(request, user_school_id, subject_id):
     current_term = current_session.term_set.get(current_term=True)
 
     context = {
-        "user_school_id": user_school_id,
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
         "subject": subject,
         "assessment_choices": StudentAssessment.assessment_choices,
         "sessions": sessions,
@@ -451,7 +445,7 @@ def get_students_assessment(request, user_school_id):
 def save_student_result(request, user_school_id):
     if request.method != "POST":
         print("failed")
-        return redirect("/" + user_school_id + "/subjects")
+        return redirect("/" + request.user.school_id + "/subjects")
 
     data = json.loads(request.POST["data"])
     subject = Subject.objects.get(id=data.get("subject_id"))
@@ -524,7 +518,7 @@ def save_student_result(request, user_school_id):
             json.dumps(
                 {
                     "redirectUrl": "/"
-                    + user_school_id
+                    + request.user.school_id
                     + "/"
                     + str(subject.id)
                     + "/staff_add_result"
@@ -563,10 +557,10 @@ def final_assessment(request, user_school_id, subject_id):
             assessments_desc[assessment.assessment_type] = [assessment.assessment_desc]
 
     context = {
-        "user_school_id": user_school_id,
-        "user_first_name": request.session.get("user_first_name"),
-        "user_last_name": request.session.get("user_last_name"),
-        "user_other_names": request.session.get("user_other_names"),
+        "user_school_id": request.user.school_id,
+        "user_first_name": request.user.first_name,
+        "user_last_name": request.user.last_name,
+        "user_other_names": request.user.other_names,
         "subject": subject,
         "students": students,
         "assessments": assessments,
