@@ -26,7 +26,6 @@ def do_login(request):
         user_type = user.user_type
 
         if user_type == 1:
-            # request.session["user_is_authenticated"] = True
             request.session.set_expiry(600)
             return redirect("/" + user.school_id + "/admin_home")
 
@@ -40,11 +39,11 @@ def do_login(request):
 
         else:
             messages.error(request, "Invalid Login!")
-            return redirect("login")
+            return redirect("")
 
     else:
         messages.error(request, "Invalid Login Credentials!")
-        return redirect("login_page")
+        return redirect("")
 
 
 def get_user_details(request):
