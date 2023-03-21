@@ -24,15 +24,17 @@ def generate_school_id():
     from .models import User
 
     try:
+        if User.objects.all().count() == 0:
+            return "B000000"
         current_year = datetime.now().year
         last_user_id = User.objects.last().id
         return "B{}".format(str(current_year)[-2:]) + str(last_user_id + 1 + 1000)
     except AttributeError:
-        return "B0000000"
+        return "B000000"
     except SQLOperationalError:
-        return "B0000000"
+        return "B000000"
     except DjangoOperationalError:
-        return "B0000000"
+        return "B000000"
 
 
 def upload_user_pic(school_id, profile_pic_url):

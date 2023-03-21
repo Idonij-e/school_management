@@ -16,11 +16,14 @@ def login_page(request):
 def do_login(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
+
     user = SchoolIdBackend.authenticate(
         request,
         school_id=request.POST.get("school_id"),
         password=request.POST.get("password"),
     )
+
+    print(user)
 
     if user != None:
         login(request, user, backend="accounts.school_id_backend.SchoolIdBackend")
@@ -40,11 +43,11 @@ def do_login(request):
 
         else:
             messages.error(request, "Invalid Login!")
-            return redirect("")
+            return redirect("/")
 
     else:
         messages.error(request, "Invalid Login Credentials!")
-        return redirect("")
+        return redirect("/")
 
 
 def get_user_details(request):
