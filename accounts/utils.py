@@ -2,8 +2,8 @@ from datetime import datetime
 from sqlite3 import OperationalError as SQLOperationalError
 from django.db.utils import OperationalError as DjangoOperationalError
 import os
-from main.settings import MEDIA_ROOT
-from main.settings import FOLDER_ID
+from main.settings import MEDIA_ROOT, FOLDER_ID, GOOGLE_PROJECT_ID, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -58,8 +58,20 @@ def upload_user_pic(school_id, profile_pic_url):
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "client_secret.json", SCOPES
+            client_config = {
+                "installed": {
+                    "client_id": GOOGLE_CLIENT_ID,
+                    "project_id": GOOGLE_PROJECT_ID,
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                    "client_secret": GOOGLE_CLIENT_SECRET,
+                    "redirect_uris": ["http://localhost"]
+                }
+            }
+
+            flow = InstalledAppFlow.from_client_config(
+                client_config, SCOPES
             )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
