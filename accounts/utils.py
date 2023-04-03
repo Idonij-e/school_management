@@ -11,6 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from googleapiclient.http import MediaFileUpload
+from django.db.utils import ProgrammingError
 
 
 from main.settings import BASE_DIR
@@ -34,6 +35,8 @@ def generate_school_id():
         return "B000000"
     except DjangoOperationalError:
         return "B000000"
+    except ProgrammingError:
+        pass
 
 
 def upload_user_pic(school_id, profile_pic_url):
@@ -60,12 +63,12 @@ def upload_user_pic(school_id, profile_pic_url):
             else:
                 client_config = {
                     "installed": {
-                        "client_id": os.environ.get(GOOGLE_CLIENT_ID),
-                        "project_id": os.environ.get(GOOGLE_PROJECT_ID),
+                        "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+                        "project_id": os.environ.get("GOOGLE_PROJECT_ID"),
                         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                         "token_uri": "https://oauth2.googleapis.com/token",
                         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                        "client_secret": os.environ.get(GOOGLE_CLIENT_SECRET),
+                        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
                         "redirect_uris": ["http://localhost"],
                     }
                 }
