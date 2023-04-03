@@ -7,6 +7,12 @@ db.sqlite3
 media
 venv
 
+#env
+.env
+
+#client secrets
+client_secret.json
+
 # Backup files # 
 *.bak 
 

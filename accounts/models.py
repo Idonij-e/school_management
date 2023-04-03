@@ -134,7 +134,7 @@ term_choices = (
     ("Term 2", "Term 2"),
     ("Term 3", "Term 3"),
 )
-PAYSTACK_RECEIPT_EMAIL = os.getenv("PAYSTACK_RECEIPT_EMAIL")
+PAYSTACK_RECEIPT_EMAIL = os.environ.get("PAYSTACK_RECEIPT_EMAIL")
 
 
 class Fee(models.Model):

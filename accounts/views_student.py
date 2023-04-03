@@ -25,15 +25,24 @@ from http.client import HTTPResponse
 from django.template.loader import get_template, render_to_string
 from weasyprint import HTML, CSS
 import tempfile
+import requests
 
 # import asyncio
 # from pyppeteer import launch
+
 
 @login_required(login_url="login_page")
 @is_logged_in
 def home(request, user_school_id):
     user = User.objects.get(school_id=request.user.school_id)
     student = user.student
+    if request.user.profile_pic_url:
+        profile_pic_status_code = requests.get(request.user.profile_pic_url).status_code
+        
+        if requests.get(request.user.profile_pic_url).status_code == 200:
+            profile_pic = request.user.profile_pic_url
+        else:
+            profile_pic = None
 
     subjects = student.class_level.subject_set.all()
     course = ClassLevel.objects.get(id=student.class_level.id)
@@ -47,7 +56,7 @@ def home(request, user_school_id):
         "user_first_name": request.user.first_name,
         "user_last_name": request.user.last_name,
         "user_other_names": request.user.other_names,
-        "user_profile_pic_url": request.user.profile_pic_url,
+        "user_profile_pic_url": profile_pic,
         "subjects": subjects,
         "fee_term_one": fee_term_one,
         "fee_term_two": fee_term_two,
@@ -56,6 +65,7 @@ def home(request, user_school_id):
     }
 
     return render(request, "student_templates/home_template.html", context)
+
 
 @login_required(login_url="login_page")
 @is_logged_in
@@ -76,7 +86,7 @@ def profile(request, user_school_id):
         "user_first_name": request.user.first_name,
         "user_last_name": request.user.last_name,
         "user_other_names": request.user.other_names,
-        "user_profile_pic_url": request.user.profilic_pic_url,
+        "user_profile_pic_url": request.user.profile_pic_url,
         "student": student,
         "gender_data": user.gender_data,
         "fee_term_one": fee_term_one,
@@ -85,6 +95,7 @@ def profile(request, user_school_id):
         "fee_others": fee_others,
     }
     return render(request, "student_templates/student_profile.html", context)
+
 
 @login_required(login_url="login_page")
 @is_logged_in
@@ -125,6 +136,7 @@ def edit_profile(request, user_school_id):
         finally:
             return redirect("/" + request.user.school_id + "/student_profile")
 
+
 @login_required(login_url="login_page")
 @is_logged_in
 def initiate_payment(request, user_school_id, fee_id):
@@ -159,6 +171,7 @@ def initiate_payment(request, user_school_id, fee_id):
     }
     return render(request, "student_templates/make_payment.html", context)
 
+
 @login_required(login_url="login_page")
 @is_logged_in
 def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
@@ -173,6 +186,7 @@ def verify_payment(request: HttpRequest, ref: str) -> HTTPResponse:
 
     user_school_id = request.user.school_id
     return redirect("/" + request.user.school_id + "/payment_history")
+
 
 @login_required(login_url="login_page")
 @is_logged_in
@@ -200,6 +214,7 @@ def payment_history(request, user_school_id):
         "fee_others": fee_others,
     }
     return render(request, "student_templates/payment_history.html", context)
+
 
 @login_required(login_url="login_page")
 @is_logged_in
@@ -233,6 +248,7 @@ def payment_pdf(request, *args, **kwargs):
     # template = get_template(template_path)
     # html = template.render(context)
 
+
 @login_required(login_url="login_page")
 @is_logged_in
 def student_view_result(request, user_school_id, session_id):
@@ -254,10 +270,12 @@ def student_view_result(request, user_school_id, session_id):
     }
     return render(request, "student_templates/student_result.html", context)
 
+
 @login_required(login_url="login_page")
 @is_logged_in
 def payment_status(request, payment_ref):
     return HttpResponse("successfully, payment reference: " + payment_ref)
+
 
 @login_required(login_url="login_page")
 @is_logged_in

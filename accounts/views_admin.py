@@ -28,6 +28,7 @@ import docx
 import json
 from accounts.utils import upload_user_pic
 
+
 @login_required(login_url="login_page")
 @is_logged_in
 def home(request, **kwargs):
@@ -324,7 +325,7 @@ def add_staff_save(request, user_school_id):
             messages.success(request, "Staff Added Successfully!")
 
         except Exception as e:
-            print(e)
+            print('error: ', e)
             messages.error(request, "Failed to Add Staff!")
 
         finally:
@@ -380,7 +381,9 @@ def edit_staff_save(request, user_school_id):
             messages.error(request, "Failed to Update Staff.")
 
         finally:
-            return redirect("/" + request.user.school_id + "/edit_staff/" + staff_school_id)
+            return redirect(
+                "/" + request.user.school_id + "/edit_staff/" + staff_school_id
+            )
 
 
 @login_required(login_url="login_page")
@@ -527,7 +530,7 @@ def add_student_save(request, user_school_id):
                 messages.success(request, "Student Added Successfully!")
 
             except Exception as E:
-                print(E)
+                print('error: ', E)
                 messages.error(request, "Failed to Add Student!")
 
             finally:
@@ -670,7 +673,9 @@ def edit_student_save(request, user_school_id):
                 )
 
         else:
-            return redirect("/" + request.user.school_id + "/edit_student/" + student_school_id)
+            return redirect(
+                "/" + request.user.school_id + "/edit_student/" + student_school_id
+            )
 
 
 @login_required(login_url="login_page")
@@ -775,7 +780,9 @@ def edit_class_save(request, user_school_id):
             messages.error(request, "Failed to Update Class.")
 
         finally:
-            return redirect("/" + request.user.school_id + "/edit_class/" + class_level_id)
+            return redirect(
+                "/" + request.user.school_id + "/edit_class/" + class_level_id
+            )
 
 
 @login_required(login_url="login_page")
@@ -981,7 +988,9 @@ def edit_subject_save(request, user_school_id):
             # return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id":subject_id}))
 
         finally:
-            return redirect("/" + request.user.school_id + "/edit_subject/" + subject_id)
+            return redirect(
+                "/" + request.user.school_id + "/edit_subject/" + subject_id
+            )
 
 
 @login_required(login_url="login_page")
@@ -1336,7 +1345,6 @@ def student_records_doc(request, course_id):
     row[1].text = "FIRST NAME"
     row[2].text = "LAST NAME"
     # row[3].text = 'LOGIN PASSWORD'
-    # print(student_list)
 
     for id, first, last in student_list:
         row = table.add_row().cells
@@ -1460,7 +1468,6 @@ def manage_students_left(request, user_school_id):
 def change_class_level_save(request, user_school_id):
 
     if request.method != "POST":
-        print("failed")
         return redirect("/" + request.user.school_id + "/manage_class")
 
     data = json.loads(request.POST["data"])
@@ -1540,7 +1547,12 @@ def change_class_level_save(request, user_school_id):
             messages.success(request, "Student(s) moved successfully")
             return JsonResponse(
                 json.dumps(
-                    {"redirectUrl": "/" + request.user.school_id + "/left" + "/manage_students"}
+                    {
+                        "redirectUrl": "/"
+                        + request.user.school_id
+                        + "/left"
+                        + "/manage_students"
+                    }
                 ),
                 content_type="application/json",
                 safe=False,
@@ -1681,7 +1693,12 @@ def change_class_level_save(request, user_school_id):
 
         return JsonResponse(
             json.dumps(
-                {"redirectUrl": "/" + request.user.school_id + "/left" + "/manage_students"}
+                {
+                    "redirectUrl": "/"
+                    + request.user.school_id
+                    + "/left"
+                    + "/manage_students"
+                }
             ),
             content_type="application/json",
             safe=False,

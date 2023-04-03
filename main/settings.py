@@ -166,6 +166,6 @@ AUTHENTICATION_BACKENDS = [
 # Store session cache in db
 # SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
-PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
-PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY")
-FOLDER_ID = os.getenv("FOLDER_ID")
+PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
+PAYSTACK_PUBLIC_KEY = os.environ.get("PAYSTACK_PUBLIC_KEY")
+FOLDER_ID = os.environ.get("FOLDER_ID")
