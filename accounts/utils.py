@@ -11,7 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from googleapiclient.http import MediaFileUpload
-
+from django.db.utils import ProgrammingError
 
 
 from main.settings import BASE_DIR
@@ -35,6 +35,8 @@ def generate_school_id():
         return "B000000"
     except DjangoOperationalError:
         return "B000000"
+    except ProgrammingError:
+        pass
 
 
 def upload_user_pic(school_id, profile_pic_url):
@@ -54,6 +56,7 @@ def upload_user_pic(school_id, profile_pic_url):
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     # If there are no (valid) credentials available, let the user log in.
+<<<<<<< HEAD
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -77,6 +80,33 @@ def upload_user_pic(school_id, profile_pic_url):
         # Save the credentials for the next run
         with open("token.json", "w") as token:
             token.write(creds.to_json())
+=======
+    try:
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                client_config = {
+                    "installed": {
+                        "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+                        "project_id": os.environ.get("GOOGLE_PROJECT_ID"),
+                        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                        "token_uri": "https://oauth2.googleapis.com/token",
+                        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+                        "redirect_uris": ["http://localhost"],
+                    }
+                }
+
+                flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
+                creds = flow.run_local_server(port=0)
+            # Save the credentials for the next run
+            with open("token.json", "w") as token:
+                token.write(creds.to_json())
+
+    except Exception as E:
+        print("creds error: ", E)
+>>>>>>> 81d667a33dc2a4dea5a41db5c289d0766c81e239
 
     try:
         service = build("drive", "v3", credentials=creds)
@@ -134,5 +164,4 @@ def upload_user_pic(school_id, profile_pic_url):
         print(f"An error occurred: {error}")
 
     except Exception as e:
-        print(e)
-
+        print("error: ", e)
